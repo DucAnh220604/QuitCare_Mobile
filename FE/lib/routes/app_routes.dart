@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../screens/home_screen.dart';
+import '../screens/main_app.dart';
+import '../screens/auth/login_screen.dart';
+import '../screens/auth/register_screen.dart';
 import '../screens/tien_trinh_screen.dart';
 import '../screens/bang_xep_hang_screen.dart';
 import '../screens/cong_dong_screen.dart';
@@ -9,7 +11,10 @@ import '../screens/ke_hoach_de_xuat_screen.dart';
 import '../screens/ke_hoach_tu_tao_screen.dart';
 
 class AppRoutes {
-  static const String home = '/';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String home = '/home';
+  static const String mainApp = '/main';
   static const String tienTrinh = '/tien-trinh';
   static const String bangXepHang = '/bang-xep-hang';
   static const String congDong = '/cong-dong';
@@ -20,8 +25,14 @@ class AppRoutes {
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case login:
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case register:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) => const MainApp());
+      case mainApp:
+        return MaterialPageRoute(builder: (_) => const MainApp());
       case tienTrinh:
         return MaterialPageRoute(builder: (_) => const TienTrinhScreen());
       case bangXepHang:
@@ -37,7 +48,7 @@ class AppRoutes {
       case keHoachTuTao:
         return MaterialPageRoute(builder: (_) => const KeHoachTuTaoScreen());
       default:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) => const MainApp());
     }
   }
 }

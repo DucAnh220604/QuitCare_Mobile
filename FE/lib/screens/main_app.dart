@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../routes/app_routes.dart';
 import '../constants/colors.dart';
+import '../services/auth_provider.dart';
 import 'home_screen.dart';
 
 class MainApp extends StatefulWidget {
@@ -78,9 +80,9 @@ class _MainAppState extends State<MainApp> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Nguyễn Văn A',
-                      style: TextStyle(
+                    Text(
+                      context.watch<AuthProvider>().user?['fullname'] ?? 'Người dùng',
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: AppColors.white,
@@ -126,7 +128,35 @@ class _MainAppState extends State<MainApp> {
                 _buildProfileMenuTile(
                   'Đăng xuất',
                   Icons.logout,
-                  () {},
+                  () async {
+                    final authProvider = context.read<AuthProvider>();
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Đăng xuất'),
+                        content: const Text('Bạn có chắc muốn đăng xuất không?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Hủy'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.danger,
+                            ),
+                            child: const Text('Đăng xuất'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      await authProvider.logout();
+                      if (mounted) {
+                        Navigator.pushReplacementNamed(context, AppRoutes.login);
+                      }
+                    }
+                  },
                   color: AppColors.danger,
                   isDanger: true,
                 ),
@@ -135,58 +165,6 @@ class _MainAppState extends State<MainApp> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSmallCard(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withValues(alpha: 0.7),
-                color.withValues(alpha: 0.9),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 32, color: AppColors.white),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.white,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -258,28 +236,5 @@ class _MainAppState extends State<MainApp> {
         ),
       ),
     );
-  }
-
-  List<Map<String, dynamic>> _getGridItems() {
-    return [
-      {
-        'label': 'Gói Thành Viên',
-        'icon': Icons.card_membership,
-        'color': AppColors.danger,
-        'onTap': () => Navigator.pushNamed(context, AppRoutes.goiThanhVien),
-      },
-      {
-        'label': 'Kế Hoạch Đề Xuất',
-        'icon': Icons.lightbulb,
-        'color': AppColors.warning,
-        'onTap': () => Navigator.pushNamed(context, AppRoutes.keHoachDeXuat),
-      },
-      {
-        'label': 'Kế Hoạch Riêng',
-        'icon': Icons.edit,
-        'color': AppColors.primaryBlue,
-        'onTap': () => Navigator.pushNamed(context, AppRoutes.keHoachTuTao),
-      },
-    ];
   }
 }
