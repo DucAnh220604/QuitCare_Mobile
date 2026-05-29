@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../routes/app_routes.dart';
 import '../constants/colors.dart';
-import '../widgets/quick_stat_card.dart';
-import '../widgets/feature_card_large.dart';
+import 'home_screen.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({super.key});
@@ -17,7 +16,7 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _selectedIndex == 0 ? _buildHomeScreen() : _buildProfileScreen(),
+      body: _selectedIndex == 0 ? const HomeScreen() : _buildProfileScreen(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         selectedItemColor: AppColors.primaryBlue,
@@ -33,191 +32,6 @@ class _MainAppState extends State<MainApp> {
           });
         },
       ),
-    );
-  }
-
-  Widget _buildHomeScreen() {
-    return CustomScrollView(
-      slivers: [
-        // Header
-        SliverAppBar(
-          expandedHeight: 220,
-          floating: false,
-          pinned: true,
-          elevation: 0,
-          backgroundColor: AppColors.primaryBlue,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppColors.darkBlue, AppColors.primaryBlue],
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Xin chào, Bạn! 👋',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Hành trình bỏ thuốc lá của bạn bắt đầu ngay từ bây giờ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.white.withValues(alpha: 0.9),
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        // Content
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Quick Stats
-                const Text(
-                  'Thống kê của bạn',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                  ),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 4,
-                  itemBuilder: (context, index) {
-                    final items = [
-                      QuickStatCard(
-                        label: 'Ngày không hút',
-                        value: '5',
-                        icon: Icons.calendar_today,
-                        color: AppColors.primaryBlue,
-                      ),
-                      QuickStatCard(
-                        label: 'Tiền tiết kiệm',
-                        value: '450K',
-                        icon: Icons.attach_money,
-                        color: AppColors.info,
-                      ),
-                      QuickStatCard(
-                        label: 'Xếp hạng',
-                        value: '#12',
-                        icon: Icons.emoji_events,
-                        color: AppColors.warning,
-                      ),
-                      QuickStatCard(
-                        label: 'Thành tích',
-                        value: '8',
-                        icon: Icons.star,
-                        color: AppColors.danger,
-                      ),
-                    ];
-                    return items[index];
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Main Features
-                const Text(
-                  'Các tính năng chính',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Featured Items
-                FeatureCardLarge(
-                  title: 'Tiến Trình của Bạn',
-                  description: 'Theo dõi hành trình bỏ thuốc hàng tuần',
-                  icon: Icons.trending_up,
-                  color: AppColors.primaryBlue,
-                  onTap: () =>
-                      Navigator.pushNamed(context, AppRoutes.tienTrinh),
-                ),
-                FeatureCardLarge(
-                  title: 'Bảng Xếp Hạng',
-                  description: 'So sánh tiến độ với cộng đồng',
-                  icon: Icons.leaderboard,
-                  color: AppColors.accentBlue,
-                  onTap: () =>
-                      Navigator.pushNamed(context, AppRoutes.bangXepHang),
-                ),
-                FeatureCardLarge(
-                  title: 'Cộng Đồng Hỗ Trợ',
-                  description: 'Kết nối với những người có chung mục tiêu',
-                  icon: Icons.people,
-                  color: AppColors.accentBlue,
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.congDong),
-                ),
-
-                const SizedBox(height: 20),
-
-                // More Options Grid
-                const Text(
-                  'Khám phá thêm',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                  ),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _getGridItems().length,
-                  itemBuilder: (context, index) {
-                    return _buildSmallCard(
-                      _getGridItems()[index]['label'],
-                      _getGridItems()[index]['icon'],
-                      _getGridItems()[index]['color'],
-                      _getGridItems()[index]['onTap'],
-                    );
-                  },
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 

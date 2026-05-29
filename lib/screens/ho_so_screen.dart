@@ -68,7 +68,7 @@ class HoSoScreen extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.2),
+                        color: AppColors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
@@ -311,7 +311,7 @@ class HoSoScreen extends StatelessWidget {
               Switch(
                 value: false,
                 onChanged: (_) {},
-                activeColor: AppColors.primaryBlue,
+                activeThumbColor: AppColors.primaryBlue,
               )
             else
               Icon(

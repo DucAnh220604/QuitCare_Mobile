@@ -65,4 +65,36 @@ class AppColors {
   static const Color divider = Color(0xFFE0E0E0);
   static const Color shadow = Color(0x1F000000);
   static const Color scrim = Color(0xFF000000);
+
+  // Extended colors - Modern Design
+  static const Color brandPurple = Color(0xFF7C3AED);
+  static const Color brandOrange = Color(0xFFF97316);
+  static const Color brandPink = Color(0xFFEC4899);
+  static const Color brandCyan = Color(0xFF06B6D4);
+  static const Color brandEmerald = Color(0xFF10B981);
+
+  // Extended gradients
+  static const LinearGradient purpleGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [brandPurple, Color(0xFFA855F7)],
+  );
+
+  static const LinearGradient orangeGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [brandOrange, Color(0xFFFBBF24)],
+  );
+
+  static const LinearGradient emeraldGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [brandEmerald, Color(0xFF14B8A6)],
+  );
+
+  static const LinearGradient blueGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryBlue, accentBlue],
+  );
 }

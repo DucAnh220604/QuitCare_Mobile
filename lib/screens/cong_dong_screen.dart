@@ -112,7 +112,7 @@ class CongDongScreen extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             padding: const EdgeInsets.all(12),
@@ -164,7 +164,7 @@ class CongDongScreen extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withOpacity(0.1),
+                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

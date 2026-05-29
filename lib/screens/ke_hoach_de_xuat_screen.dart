@@ -22,10 +22,10 @@ class KeHoachDeXuatScreen extends StatelessWidget {
             // Header
             Container(
               decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withOpacity(0.1),
+                color: AppColors.primaryBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  color: AppColors.primaryBlue.withValues(alpha: 0.3),
                 ),
               ),
               padding: const EdgeInsets.all(16),

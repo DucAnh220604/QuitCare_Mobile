@@ -177,7 +177,7 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
     return Container(
       decoration: BoxDecoration(
         color: isPopular
-            ? AppColors.primaryBlue.withOpacity(0.1)
+            ? AppColors.primaryBlue.withValues(alpha: 0.1)
             : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
@@ -187,7 +187,7 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
         boxShadow: [
           BoxShadow(
             color: isPopular
-                ? AppColors.primaryBlue.withOpacity(0.2)
+                ? AppColors.primaryBlue.withValues(alpha: 0.2)
                 : AppColors.shadow,
             blurRadius: 8,
             offset: const Offset(0, 2),

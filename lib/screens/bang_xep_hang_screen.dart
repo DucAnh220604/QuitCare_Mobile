@@ -77,7 +77,7 @@ class BangXepHangScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.primaryBlue.withOpacity(0.1)
+            ? AppColors.primaryBlue.withValues(alpha: 0.1)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: isActive
@@ -105,7 +105,7 @@ class BangXepHangScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isCurrentUser
-            ? AppColors.primaryBlue.withOpacity(0.1)
+            ? AppColors.primaryBlue.withValues(alpha: 0.1)
             : AppColors.white,
         borderRadius: BorderRadius.circular(12),
         border: isCurrentUser

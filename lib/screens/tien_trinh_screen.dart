@@ -61,7 +61,7 @@ class TienTrinhScreen extends StatelessWidget {
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  color: AppColors.primaryBlue.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -110,7 +110,7 @@ class TienTrinhScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.3),
+            color: AppColors.primaryBlue.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -123,7 +123,7 @@ class TienTrinhScreen extends StatelessWidget {
           Text(
             'Ngày thứ',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.white.withOpacity(0.8),
+              color: AppColors.white.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 8),
@@ -183,7 +183,7 @@ class TienTrinhScreen extends StatelessWidget {
           label,
           style: Theme.of(
             context,
-          ).textTheme.labelSmall?.copyWith(color: color.withOpacity(0.8)),
+          ).textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.8)),
         ),
       ],
     );
