@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/colors.dart';
+import '../services/auth_provider.dart';
+import '../routes/app_routes.dart';
 
 class HoSoScreen extends StatelessWidget {
   const HoSoScreen({super.key});
@@ -140,7 +143,42 @@ class HoSoScreen extends StatelessWidget {
                     context,
                     icon: Icons.person_outline,
                     title: 'Thông tin cá nhân',
-                    onTap: () {},
+                    onTap: () async {
+                      final authProvider =
+                          Provider.of<AuthProvider>(context, listen: false);
+
+                      // Show loading dialog
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+
+                      final success = await authProvider.fetchProfile();
+
+                      // Hide loading dialog
+                      if (context.mounted) Navigator.pop(context);
+
+                      if (success) {
+                        if (context.mounted) {
+                          Navigator.pushNamed(context, AppRoutes.profileDetail);
+                        }
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                authProvider.errorMessage ??
+                                    'Lỗi khi lấy thông tin',
+                              ),
+                              backgroundColor: AppColors.danger,
+                            ),
+                          );
+                        }
+                      }
+                    },
                   ),
                 ],
               ),
@@ -216,6 +254,57 @@ class HoSoScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showProfileDialog(BuildContext context, Map<String, dynamic> userData) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Thông tin cá nhân'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildProfileInfoItem('Họ tên', userData['fullname'] ?? 'N/A'),
+            const SizedBox(height: 12),
+            _buildProfileInfoItem('Email', userData['email'] ?? 'N/A'),
+            const SizedBox(height: 12),
+            _buildProfileInfoItem('Số điện thoại', userData['phone'] ?? 'N/A'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 

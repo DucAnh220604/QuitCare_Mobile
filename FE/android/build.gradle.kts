@@ -5,6 +5,10 @@ allprojects {
     }
 }
 
+ext["compileSdkVersion"] = 36
+ext["minSdkVersion"] = 21
+ext["targetSdkVersion"] = 36
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
@@ -18,6 +22,7 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 }
+
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)

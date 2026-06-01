@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/colors.dart';
+import '../services/membership_provider.dart';
 
 class GoiThanhVienScreen extends StatefulWidget {
   const GoiThanhVienScreen({super.key});
@@ -9,7 +11,16 @@ class GoiThanhVienScreen extends StatefulWidget {
 }
 
 class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
-  bool isMonthly = true;
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final membershipProvider =
+          Provider.of<MembershipProvider>(context, listen: false);
+      membershipProvider.fetchPackages();
+      membershipProvider.fetchCurrentMembership();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,159 +32,136 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
         title: const Text('Gói thành viên'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Toggle
-            Row(
+      body: Consumer<MembershipProvider>(
+        builder: (context, membershipProvider, _) {
+          if (membershipProvider.isLoading &&
+              membershipProvider.packages.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final currentMembership = membershipProvider.currentMembership;
+          final packages = membershipProvider.packages;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => isMonthly = true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isMonthly
-                            ? AppColors.primaryBlue
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Tháng',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isMonthly
-                              ? AppColors.white
-                              : AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                // Current membership info
+                if (currentMembership != null &&
+                    currentMembership['type'] != 'free')
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primaryBlue),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Gói hiện tại của bạn',
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        Text(
+                          currentMembership['type'] == '99k'
+                              ? 'Gói Cơ Bản (99K)'
+                              : 'Gói Premium (199K)',
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Trạng thái: ${currentMembership['status'] == 'active' ? 'Đang hoạt động' : 'Không hoạt động'}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => isMonthly = false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: !isMonthly
-                            ? AppColors.primaryBlue
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Năm',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: !isMonthly
-                              ? AppColors.white
-                              : AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                if (currentMembership != null &&
+                    currentMembership['type'] != 'free')
+                  const SizedBox(height: 24),
+
+                // Packages title
+                Text(
+                  'Lựa chọn gói thành viên',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-            // Packages
-            Column(
-              children: [
-                _buildPackageCard(
-                  context,
-                  title: 'Free',
-                  price: 'Miễn phí',
-                  description: 'Bắt đầu hành trình của bạn',
-                  features: [
-                    '✓ Tính năng cơ bản',
-                    '✓ Theo dõi tiến độ',
-                    '✗ Cộng đồng premium',
-                    '✗ Tư vấn 1-1',
-                  ],
-                  isPopular: false,
-                  onTap: () {},
+                // Packages list
+                Column(
+                  children: packages
+                      .map((pkg) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildPackageCard(
+                          context,
+                          package: pkg,
+                          isCurrentMembership:
+                              currentMembership?['type'] == pkg['id'],
+                          membershipProvider: membershipProvider,
+                        ),
+                      ))
+                      .toList(),
+                ),
+
+                const SizedBox(height: 32),
+
+                // FAQ Section
+                Text(
+                  'Câu hỏi thường gặp',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                _buildPackageCard(
+                _buildFaqItem(
                   context,
-                  title: 'Pro',
-                  price: isMonthly ? '99.000 đ' : '990.000 đ',
-                  duration: isMonthly ? '/tháng' : '/năm',
-                  badge: 'Được chọn nhiều nhất',
-                  description: 'Truy cập đầy đủ tất cả tính năng',
-                  features: [
-                    '✓ Tính năng cơ bản',
-                    '✓ Theo dõi tiến độ nâng cao',
-                    '✓ Cộng đồng premium',
-                    '✓ Tư vấn 1-1 hàng tháng',
-                  ],
-                  isPopular: true,
-                  onTap: () {},
+                  question: 'Sự khác biệt giữa hai gói là gì?',
+                  answer:
+                  'Gói Cơ Bản (99K) bao gồm xem thống kê và xây dựng kế hoạch. Gói Premium (199K) bao gồm tất cả tính năng của gói Cơ Bản cộng với tính năng video call.',
                 ),
-                const SizedBox(height: 16),
-                _buildPackageCard(
+                _buildFaqItem(
                   context,
-                  title: 'Premium',
-                  price: isMonthly ? '199.000 đ' : '1.990.000 đ',
-                  duration: isMonthly ? '/tháng' : '/năm',
-                  description: 'Hỗ trợ VIP và tư vấn độc lập',
-                  features: [
-                    '✓ Tất cả tính năng Pro',
-                    '✓ Hỗ trợ ưu tiên 24/7',
-                    '✓ Tư vấn 1-1 tuần',
-                    '✓ Kế hoạch cá nhân hóa',
-                  ],
-                  isPopular: false,
-                  onTap: () {},
+                  question: 'Thời hạn của gói là bao lâu?',
+                  answer: 'Cả hai gói đều có thời hạn vô hạn, bạn có thể sử dụng mãi mãi.',
                 ),
+                _buildFaqItem(
+                  context,
+                  question: 'Tôi có thể thay đổi gói sau này không?',
+                  answer:
+                  'Có, bạn có thể nâng cấp hoặc hạ cấp gói của mình bất cứ lúc nào.',
+                ),
+                const SizedBox(height: 40),
               ],
             ),
-            const SizedBox(height: 32),
-
-            // FAQ Section
-            Text(
-              'Câu hỏi thường gặp',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildFaqItem(
-              context,
-              question: 'Tôi có thể hủy bỏ bất cứ lúc nào không?',
-              answer:
-                  'Có, bạn có thể hủy gói thành viên của mình bất cứ lúc nào.',
-            ),
-            _buildFaqItem(
-              context,
-              question: 'Có chế độ dùng thử miễn phí không?',
-              answer: 'Có, bạn có thể sử dụng gói Free để trải nghiệm trước.',
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildPackageCard(
     BuildContext context, {
-    required String title,
-    required String price,
-    String? duration,
-    String? badge,
-    required String description,
-    required List<String> features,
-    required bool isPopular,
-    required VoidCallback onTap,
+    required Map<String, dynamic> package,
+    required bool isCurrentMembership,
+    required MembershipProvider membershipProvider,
   }) {
+    final isPopular = package['id'] == '199k';
+    final features = List<String>.from(package['features'] ?? []);
+
     return Container(
       decoration: BoxDecoration(
         color: isPopular
@@ -181,14 +169,15 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
             : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isPopular ? AppColors.primaryBlue : AppColors.divider,
-          width: isPopular ? 2 : 1,
+          color: isCurrentMembership
+              ? AppColors.success
+              : (isPopular ? AppColors.primaryBlue : AppColors.divider),
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: isPopular
-                ? AppColors.primaryBlue.withValues(alpha: 0.2)
-                : AppColors.shadow,
+            color: (isCurrentMembership ? AppColors.success : (isPopular ? AppColors.primaryBlue : AppColors.shadow))
+                .withValues(alpha: 0.2),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -198,54 +187,58 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (badge != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                badge,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w600,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                package['name'] ?? 'Gói',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
-            ),
-          if (badge != null) const SizedBox(height: 12),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
+              if (isCurrentMembership)
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.success,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Hiện tại',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            description,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+            package['duration'] ?? '',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 16),
           RichText(
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: price,
+                  text: _formatPrice(package['price']),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryBlue,
                   ),
                 ),
-                if (duration != null)
-                  TextSpan(
-                    text: duration,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                TextSpan(
+                  text: ' VND',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
                   ),
+                ),
               ],
             ),
           ),
@@ -255,42 +248,196 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
             children: features
                 .map(
                   (feature) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      feature,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textPrimary,
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: AppColors.success,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                )
+                  ],
+                ),
+              ),
+            )
                 .toList(),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isPopular
-                    ? AppColors.primaryBlue
-                    : AppColors.lightGrey,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          if (!isCurrentMembership)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () =>
+                    _showPaymentDialog(context, package, membershipProvider),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Đăng ký gói này',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.success),
+              ),
               child: Text(
-                'Chọn gói này',
+                'Gói hiện tại',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: isPopular ? AppColors.white : AppColors.textPrimary,
+                  color: AppColors.success,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentDialog(
+    BuildContext context,
+    Map<String, dynamic> package,
+    MembershipProvider membershipProvider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận thanh toán'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Gói: ${package['name']}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text('Giá: ${_formatPrice(package['price'])} VND'),
+            const SizedBox(height: 8),
+            Text('Thời hạn: ${package['duration']}'),
+            const SizedBox(height: 16),
+            Text(
+              'Bạn có chắc chắn muốn đăng ký gói này không?',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _processPayment(
+                context,
+                package['id'],
+                membershipProvider,
+              );
+            },
+            child: const Text('Thanh toán'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _processPayment(
+    BuildContext context,
+    String packageId,
+    MembershipProvider membershipProvider,
+  ) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+      const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final success = await membershipProvider.registerMembership(packageId).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Kết nối timeout, vui lòng thử lại');
+        },
+      );
+
+      // Hide loading
+      if (mounted) Navigator.pop(context);
+
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đăng ký thành công!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          // Rebuild UI to show current membership
+          setState(() {});
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                membershipProvider.errorMessage ?? 'Đăng ký thất bại',
+              ),
+              backgroundColor: AppColors.danger,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Hide loading
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            backgroundColor: AppColors.danger,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatPrice(dynamic price) {
+    if (price is int) {
+      return price.toString().replaceAllMapped(
+        RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+      );
+    }
+    return price.toString();
   }
 
   Widget _buildFaqItem(
@@ -306,22 +453,27 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
         border: Border.all(color: AppColors.divider, width: 1),
       ),
       padding: const EdgeInsets.all(12),
-      child: ExpansionTile(
-        title: Text(
-          question,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          splashFactory: InkRipple.splashFactory,
         ),
-        children: [
-          Text(
-            answer,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+        child: ExpansionTile(
+          title: Text(
+            question,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
           ),
-        ],
+          children: [
+            Text(
+              answer,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
       ),
     );
   }

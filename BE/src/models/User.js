@@ -30,6 +30,26 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please provide a phone number"],
       trim: true,
     },
+    membership: {
+      type: {
+        type: String,
+        enum: ["free", "99k", "199k"],
+        default: "free",
+      },
+      status: {
+        type: String,
+        enum: ["active", "expired", "cancelled"],
+        default: "active",
+      },
+      startDate: {
+        type: Date,
+        default: null,
+      },
+      transactionId: {
+        type: String,
+        default: null,
+      },
+    },
     createdAt: {
       type: Date,
       default: Date.now,

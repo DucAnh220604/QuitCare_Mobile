@@ -41,6 +41,7 @@ const register = async (req, res) => {
           fullname: user.fullname,
           email: user.email,
           phone: user.phone,
+          membership: user.membership,
         },
       },
     });
@@ -103,6 +104,7 @@ const login = async (req, res) => {
           fullname: user.fullname,
           email: user.email,
           phone: user.phone,
+          membership: user.membership,
         },
       },
     });
@@ -128,6 +130,7 @@ const getProfile = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         phone: user.phone,
+        membership: user.membership,
         createdAt: user.createdAt,
       },
     });
@@ -139,4 +142,36 @@ const getProfile = async (req, res) => {
   }
 };
 
-export { register, login, getProfile };
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res) => {
+  try {
+    const { fullname, phone } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { fullname, phone },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        phone: user.phone,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export { register, login, getProfile, updateProfile };

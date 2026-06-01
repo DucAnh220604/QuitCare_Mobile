@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
+import '../routes/app_routes.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -574,6 +575,15 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        _buildQuickActionButton(
+          context,
+          icon: Icons.card_membership,
+          label: 'Gói thành viên',
+          color: AppColors.warning,
+          route: AppRoutes.goiThanhVien,
+          isFullWidth: true,
+        ),
       ],
     );
   }
@@ -585,6 +595,7 @@ class HomeScreen extends StatelessWidget {
     required String label,
     required Color color,
     required String route,
+    bool isFullWidth = false,
   }) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, route),
@@ -601,29 +612,55 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+        padding: isFullWidth
+            ? const EdgeInsets.symmetric(vertical: 14, horizontal: 16)
+            : const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        child: isFullWidth
+            ? Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: color, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.arrow_forward_ios, color: color, size: 16),
+                ],
+              )
+            : Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: color, size: 24),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

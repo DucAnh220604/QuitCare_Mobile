@@ -105,6 +105,46 @@ class AuthService {
     }
   }
 
+  /// Update user profile
+  Future<Map<String, dynamic>> updateProfile({
+    required String fullname,
+    required String phone,
+  }) async {
+    try {
+      final token = await storage.read(key: tokenKey);
+
+      if (token == null) {
+        return {'success': false, 'message': 'No token found'};
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'fullname': fullname, 'phone': phone}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success']) {
+        return {
+          'success': true,
+          'message': data['message'],
+          'user': data['data'],
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Failed to update profile',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
   /// Get stored token
   Future<String?> getToken() async {
     return await storage.read(key: tokenKey);

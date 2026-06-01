@@ -9,6 +9,7 @@ import '../screens/goi_thanh_vien_screen.dart';
 import '../screens/ho_so_screen.dart';
 import '../screens/ke_hoach_de_xuat_screen.dart';
 import '../screens/ke_hoach_tu_tao_screen.dart';
+import '../screens/profile_detail_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String congDong = '/cong-dong';
   static const String goiThanhVien = '/goi-thanh-vien';
   static const String hoSo = '/ho-so';
+  static const String profileDetail = '/profile-detail';
   static const String keHoachDeXuat = '/ke-hoach-de-xuat';
   static const String keHoachTuTao = '/ke-hoach-tu-tao';
 
@@ -43,6 +45,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const GoiThanhVienScreen());
       case hoSo:
         return MaterialPageRoute(builder: (_) => const HoSoScreen());
+      case profileDetail:
+        return MaterialPageRoute(builder: (_) => const ProfileDetailScreen());
       case keHoachDeXuat:
         return MaterialPageRoute(builder: (_) => const KeHoachDeXuatScreen());
       case keHoachTuTao:

@@ -94,6 +94,68 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Get user profile
+  Future<bool> fetchProfile() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await authService.getProfile();
+
+      if (result['success']) {
+        _user = result['user'];
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'An error occurred: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update user profile
+  Future<bool> updateProfile({
+    required String fullname,
+    required String phone,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await authService.updateProfile(
+        fullname: fullname,
+        phone: phone,
+      );
+
+      if (result['success']) {
+        _user = result['user'];
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'An error occurred: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Check if user is logged in
   Future<void> checkAuthStatus() async {
     _isCheckingAuth = true;

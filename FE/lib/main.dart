@@ -4,6 +4,7 @@ import 'routes/app_routes.dart';
 import 'screens/main_app.dart';
 import 'constants/colors.dart';
 import 'services/auth_provider.dart';
+import 'services/membership_provider.dart';
 import 'screens/auth/login_screen.dart';
 
 void main() {
@@ -30,7 +31,10 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider.value(value: _authProvider)],
+      providers: [
+        ChangeNotifierProvider.value(value: _authProvider),
+        ChangeNotifierProvider(create: (_) => MembershipProvider()),
+      ],
       child: MaterialApp(
         title: 'QuitCare Mobile',
         theme: ThemeData(
