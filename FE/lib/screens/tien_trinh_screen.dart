@@ -1,11 +1,131 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_provider.dart';
 import '../constants/colors.dart';
+import '../services/progress_service.dart';
+import '../routes/app_routes.dart';
 
-class TienTrinhScreen extends StatelessWidget {
+class TienTrinhScreen extends StatefulWidget {
   const TienTrinhScreen({super.key});
 
   @override
+  State<TienTrinhScreen> createState() => _TienTrinhScreenState();
+}
+
+class _TienTrinhScreenState extends State<TienTrinhScreen> {
+  final _progressService = ProgressService();
+  bool _isLoading = true;
+  
+  int _streak = 0;
+  int _moneySaved = 0;
+  int _totalAvoided = 0;
+  int _durationDays = 0;
+  int _logsCount = 0;
+  bool _hasCheckedInToday = false;
+  bool _isCompleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStats();
+  }
+
+  Future<void> _fetchStats() async {
+    setState(() => _isLoading = true);
+    final result = await _progressService.getProgressStats();
+    
+    if (result['success']) {
+      setState(() {
+        _streak = result['data']['streak'] ?? 0;
+        _moneySaved = result['data']['moneySaved'] ?? 0;
+        _totalAvoided = result['data']['totalAvoided'] ?? 0;
+        _hasCheckedInToday = result['data']['hasCheckedInToday'] ?? false;
+        _durationDays = result['data']['durationDays'] ?? 0;
+        _logsCount = result['data']['logsCount'] ?? 0;
+      });
+    }
+    setState(() => _isLoading = false);
+  }
+
+  bool get _isCompleted => _durationDays > 0 && _logsCount >= _durationDays;
+
+  Future<void> _completePlan() async {
+    setState(() => _isCompleting = true);
+    final result = await _progressService.completePlan();
+    
+    if (result['success'] && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message']), backgroundColor: AppColors.success),
+      );
+      // Reload User Provider so Home/HoSo knows Plan is completed
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.fetchProfile();
+      
+      if (mounted) {
+        Navigator.pop(context); // Go back to Home
+      }
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Có lỗi xảy ra'), backgroundColor: AppColors.danger),
+      );
+      setState(() => _isCompleting = false);
+    }
+  }
+
+  Future<void> _forceSimulate() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Xác nhận giả lập'),
+        content: const Text('Hành động này sẽ xóa toàn bộ nhật ký hiện tại và tạo ra dữ liệu giả lập cho toàn bộ kế hoạch để demo. Bạn có chắc chắn?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Đồng ý', style: TextStyle(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isLoading = true);
+      final result = await _progressService.forceSimulate();
+      if (result['success'] && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message']), backgroundColor: AppColors.success),
+        );
+        _fetchStats();
+      } else if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Lỗi'), backgroundColor: AppColors.danger),
+        );
+      }
+    }
+  }
+
+  String _formatMoney(int amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M đ';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}K đ';
+    }
+    return '$amount đ';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: CircularProgressIndicator(color: AppColors.primaryBlue)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -13,7 +133,35 @@ class TienTrinhScreen extends StatelessWidget {
         backgroundColor: AppColors.primaryBlue,
         title: const Text('Tiến trình của bạn'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.electric_bolt, color: AppColors.warning),
+            tooltip: 'Giả lập dữ liệu Demo',
+            onPressed: _forceSimulate,
+          ),
+        ],
       ),
+      floatingActionButton: _isCompleted
+          ? FloatingActionButton.extended(
+              onPressed: _isCompleting ? null : _completePlan,
+              backgroundColor: AppColors.success,
+              icon: _isCompleting
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.emoji_events, color: Colors.white),
+              label: Text(_isCompleting ? 'Đang xử lý...' : 'Hoàn tất Kế hoạch', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            )
+          : (!_hasCheckedInToday
+              ? FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.dailyCheckin).then((val) {
+                      if (val == true) _fetchStats();
+                    });
+                  },
+                  backgroundColor: AppColors.warning,
+                  icon: const Icon(Icons.assignment_turned_in, color: Colors.white),
+                  label: const Text('Ghi nhận hôm nay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                )
+              : null),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -25,7 +173,7 @@ class TienTrinhScreen extends StatelessWidget {
 
             // Milestones
             Text(
-              'Cột mốc chính',
+              'Cột mốc sức khỏe',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -45,58 +193,7 @@ class TienTrinhScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildBenefitsGrid(context),
-            const SizedBox(height: 32),
-
-            // Daily Tips
-            Text(
-              'Lời khuyên hôm nay',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.lightbulb, color: AppColors.warning, size: 24),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Hãy uống nhiều nước',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Uống nước giúp giảm cơn thèm. Hãy cố gắng uống ít nhất 8 cốc nước mỗi ngày.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 40),
+            const SizedBox(height: 80), // Padding for FAB
           ],
         ),
       ),
@@ -121,16 +218,17 @@ class TienTrinhScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            'Ngày thứ',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.white.withValues(alpha: 0.8),
+            'Số ngày không hút thuốc',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.white.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            '45',
+            '$_streak',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppColors.white,
             ),
           ),
@@ -141,20 +239,14 @@ class TienTrinhScreen extends StatelessWidget {
               _buildStatColumn(
                 context,
                 label: 'Tiền tiết kiệm',
-                value: '2.3M đ',
-                color: AppColors.white,
+                value: _formatMoney(_moneySaved),
+                color: AppColors.warning,
               ),
               _buildStatColumn(
                 context,
-                label: 'Cập độ',
-                value: '12',
-                color: AppColors.white,
-              ),
-              _buildStatColumn(
-                context,
-                label: 'Tuổi thêm',
-                value: '1.5 năm',
-                color: AppColors.white,
+                label: 'Số điếu tránh được',
+                value: '$_totalAvoided',
+                color: AppColors.success,
               ),
             ],
           ),
@@ -173,7 +265,7 @@ class TienTrinhScreen extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
             color: color,
           ),
@@ -181,68 +273,69 @@ class TienTrinhScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.labelSmall?.copyWith(color: color.withValues(alpha: 0.8)),
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.white.withValues(alpha: 0.9)),
         ),
       ],
     );
   }
 
   Widget _buildMilestonesList(BuildContext context) {
+    // Dynamic milestones based on current streak
     List<Map<String, dynamic>> milestones = [
       {
-        'day': '7',
-        'title': 'Một tuần',
+        'day': 1,
+        'title': '1 Ngày',
+        'description': 'Huyết áp và nhịp tim ổn định',
+        'icon': Icons.favorite,
+      },
+      {
+        'day': 7,
+        'title': '1 Tuần',
         'description': 'Hệ hô hấp bắt đầu phục hồi',
-        'icon': Icons.check_circle,
-        'achieved': true,
+        'icon': Icons.air,
       },
       {
-        'day': '30',
-        'title': 'Một tháng',
+        'day': 30,
+        'title': '1 Tháng',
         'description': 'Khứu giác và vị giác cải thiện',
-        'icon': Icons.check_circle,
-        'achieved': true,
+        'icon': Icons.restaurant,
       },
       {
-        'day': '90',
-        'title': 'Ba tháng',
+        'day': 90,
+        'title': '3 Tháng',
         'description': 'Chức năng phổi tăng 30%',
-        'icon': Icons.schedule,
-        'achieved': false,
+        'icon': Icons.local_hospital,
       },
       {
-        'day': '365',
-        'title': 'Một năm',
+        'day': 365,
+        'title': '1 Năm',
         'description': 'Giảm 50% nguy cơ bệnh tim',
-        'icon': Icons.lock_clock,
-        'achieved': false,
+        'icon': Icons.health_and_safety,
       },
     ];
 
     return Column(
-      children: milestones
-          .map(
-            (milestone) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildMilestoneCard(context, milestone: milestone),
-            ),
-          )
-          .toList(),
+      children: milestones.map((milestone) {
+        bool achieved = _streak >= milestone['day'];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildMilestoneCard(context, milestone: milestone, achieved: achieved),
+        );
+      }).toList(),
     );
   }
 
   Widget _buildMilestoneCard(
     BuildContext context, {
     required Map<String, dynamic> milestone,
+    required bool achieved,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: milestone['achieved'] ? AppColors.success : AppColors.divider,
+          color: achieved ? AppColors.success : AppColors.divider,
           width: 1,
         ),
         boxShadow: [
@@ -258,9 +351,7 @@ class TienTrinhScreen extends StatelessWidget {
         children: [
           Icon(
             milestone['icon'],
-            color: milestone['achieved']
-                ? AppColors.success
-                : AppColors.primaryBlue,
+            color: achieved ? AppColors.success : AppColors.mediumGrey,
             size: 28,
           ),
           const SizedBox(width: 12),
@@ -272,7 +363,7 @@ class TienTrinhScreen extends StatelessWidget {
                   milestone['title'],
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: achieved ? AppColors.textPrimary : AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -285,6 +376,8 @@ class TienTrinhScreen extends StatelessWidget {
               ],
             ),
           ),
+          if (achieved)
+            const Icon(Icons.check_circle, color: AppColors.success, size: 24),
         ],
       ),
     );
@@ -306,39 +399,37 @@ class TienTrinhScreen extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      children: benefits
-          .map(
-            (benefit) => Container(
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.divider, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.shadow,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+      children: benefits.map((benefit) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.divider, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(benefit['icon']!, style: const TextTheme().displaySmall),
-                  const SizedBox(height: 8),
-                  Text(
-                    benefit['title']!,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(benefit['icon']!, style: const TextTheme().displaySmall),
+              const SizedBox(height: 8),
+              Text(
+                benefit['title']!,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-          )
-          .toList(),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

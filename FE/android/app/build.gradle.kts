@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.quitcare_mobile"
     compileSdk = 36
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "26.3.11579264"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

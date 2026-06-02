@@ -109,6 +109,7 @@ class AuthService {
   Future<Map<String, dynamic>> updateProfile({
     required String fullname,
     required String phone,
+    Map<String, dynamic>? smokingProfile,
   }) async {
     try {
       final token = await storage.read(key: tokenKey);
@@ -123,7 +124,11 @@ class AuthService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'fullname': fullname, 'phone': phone}),
+        body: jsonEncode({
+          'fullname': fullname,
+          'phone': phone,
+          if (smokingProfile != null) 'smokingProfile': smokingProfile,
+        }),
       );
 
       final data = jsonDecode(response.body);

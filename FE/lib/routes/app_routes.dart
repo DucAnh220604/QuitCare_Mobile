@@ -10,6 +10,11 @@ import '../screens/ho_so_screen.dart';
 import '../screens/ke_hoach_de_xuat_screen.dart';
 import '../screens/ke_hoach_tu_tao_screen.dart';
 import '../screens/profile_detail_screen.dart';
+import '../screens/smoking_status_screen.dart';
+import '../screens/daily_checkin_screen.dart';
+import '../screens/plan_selection_screen.dart';
+import '../screens/plan_detail_screen.dart';
+import '../screens/plan_history_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -24,6 +29,11 @@ class AppRoutes {
   static const String profileDetail = '/profile-detail';
   static const String keHoachDeXuat = '/ke-hoach-de-xuat';
   static const String keHoachTuTao = '/ke-hoach-tu-tao';
+  static const String smokingStatus = '/smoking-status';
+  static const String dailyCheckin = '/daily-checkin';
+  static const String planSelection = '/plan-selection';
+  static const String planDetail = '/plan-detail';
+  static const String planHistory = '/plan-history';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -51,6 +61,25 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const KeHoachDeXuatScreen());
       case keHoachTuTao:
         return MaterialPageRoute(builder: (_) => const KeHoachTuTaoScreen());
+      case smokingStatus:
+        return MaterialPageRoute(builder: (_) => const SmokingStatusScreen(), settings: settings);
+      case dailyCheckin:
+        return MaterialPageRoute(builder: (_) => const DailyCheckinScreen());
+      case planSelection:
+        return MaterialPageRoute(builder: (_) => const PlanSelectionScreen());
+      case planDetail:
+        final args = settings.arguments as Map<String, dynamic>?;
+        if (args != null && args.containsKey('plan')) {
+          return MaterialPageRoute(
+            builder: (_) => PlanDetailScreen(
+              plan: args['plan'],
+              isViewOnly: args['isViewOnly'] ?? false,
+            ),
+          );
+        }
+        return MaterialPageRoute(builder: (_) => const MainApp());
+      case planHistory:
+        return MaterialPageRoute(builder: (_) => const PlanHistoryScreen());
       default:
         return MaterialPageRoute(builder: (_) => const MainApp());
     }

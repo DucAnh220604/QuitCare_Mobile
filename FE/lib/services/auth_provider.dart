@@ -126,6 +126,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> updateProfile({
     required String fullname,
     required String phone,
+    Map<String, dynamic>? smokingProfile,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -135,6 +136,7 @@ class AuthProvider extends ChangeNotifier {
       final result = await authService.updateProfile(
         fullname: fullname,
         phone: phone,
+        smokingProfile: smokingProfile,
       );
 
       if (result['success']) {

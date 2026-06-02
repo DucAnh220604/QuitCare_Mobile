@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import membershipRoutes from "./routes/membership.js";
+import planRoutes from "./routes/planRoutes.js";
+import progressRoutes from "./routes/progressRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -21,6 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/membership", membershipRoutes);
+app.use("/api/plans", planRoutes);
+app.use("/api/progress", progressRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

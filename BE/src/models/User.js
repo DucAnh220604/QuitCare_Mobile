@@ -54,6 +54,51 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    smokingProfile: {
+      cigarettesPerDay: {
+        type: Number,
+        default: 0,
+        max: [100, "Cigarettes per day cannot exceed 100"],
+      },
+      smokingYears: {
+        type: Number,
+        default: 0,
+      },
+      pricePerCigarette: {
+        type: Number,
+        default: 1000,
+      },
+      morningCravingLevel: {
+        type: String,
+        enum: ["Thấp", "Trung bình", "Cao", ""],
+        default: "",
+      },
+      quitReason: {
+        type: String,
+        enum: ["Sức khỏe", "Tài chính", "Gia đình", "Khác", ""],
+        default: "",
+      },
+      quitDate: {
+        type: Date,
+        default: Date.now,
+      },
+      currentPlan: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Plan",
+        default: null,
+      },
+      pastPlans: [
+        {
+          planId: { type: mongoose.Schema.Types.ObjectId, ref: "Plan" },
+          planName: String,
+          startDate: Date,
+          endDate: Date,
+          moneySaved: Number,
+          daysStreak: Number,
+          cigarettesAvoided: Number,
+        }
+      ],
+    },
   },
   { timestamps: true },
 );

@@ -42,6 +42,7 @@ const register = async (req, res) => {
           email: user.email,
           phone: user.phone,
           membership: user.membership,
+          smokingProfile: user.smokingProfile,
         },
       },
     });
@@ -105,6 +106,7 @@ const login = async (req, res) => {
           email: user.email,
           phone: user.phone,
           membership: user.membership,
+          smokingProfile: user.smokingProfile,
         },
       },
     });
@@ -131,6 +133,7 @@ const getProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         membership: user.membership,
+        smokingProfile: user.smokingProfile,
         createdAt: user.createdAt,
       },
     });
@@ -147,11 +150,20 @@ const getProfile = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const { fullname, phone } = req.body;
+    const { fullname, phone, smokingProfile } = req.body;
+
+    const updateQuery = { fullname, phone };
+    if (smokingProfile) {
+      if (smokingProfile.cigarettesPerDay !== undefined) updateQuery["smokingProfile.cigarettesPerDay"] = smokingProfile.cigarettesPerDay;
+      if (smokingProfile.smokingYears !== undefined) updateQuery["smokingProfile.smokingYears"] = smokingProfile.smokingYears;
+      if (smokingProfile.quitDate !== undefined) updateQuery["smokingProfile.quitDate"] = smokingProfile.quitDate;
+      if (smokingProfile.morningCravingLevel !== undefined) updateQuery["smokingProfile.morningCravingLevel"] = smokingProfile.morningCravingLevel;
+      if (smokingProfile.quitReason !== undefined) updateQuery["smokingProfile.quitReason"] = smokingProfile.quitReason;
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { fullname, phone },
+      { $set: updateQuery },
       { new: true, runValidators: true }
     );
 
@@ -163,6 +175,7 @@ const updateProfile = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         phone: user.phone,
+        smokingProfile: user.smokingProfile,
         createdAt: user.createdAt,
       },
     });

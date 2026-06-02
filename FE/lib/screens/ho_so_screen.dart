@@ -3,12 +3,54 @@ import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../services/auth_provider.dart';
 import '../routes/app_routes.dart';
+import '../services/progress_service.dart';
 
-class HoSoScreen extends StatelessWidget {
+class HoSoScreen extends StatefulWidget {
   const HoSoScreen({super.key});
 
   @override
+  State<HoSoScreen> createState() => _HoSoScreenState();
+}
+
+class _HoSoScreenState extends State<HoSoScreen> {
+  final ProgressService _progressService = ProgressService();
+  int _moneySaved = 0;
+  int _streak = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStats();
+  }
+
+  Future<void> _fetchStats() async {
+    final result = await _progressService.getProgressStats();
+    if (result['success'] && mounted) {
+      setState(() {
+        _moneySaved = result['data']['moneySaved'] ?? 0;
+        _streak = result['data']['streak'] ?? 0;
+      });
+    }
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String _formatMoney(int amount) {
+    if (amount >= 1000000) {
+      return '${(amount / 1000000).toStringAsFixed(1)}M đ';
+    } else if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(0)}K đ';
+    }
+    return '$amount đ';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -58,7 +100,7 @@ class HoSoScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Nguyễn Văn A',
+                      user?['fullname'] ?? 'N/A',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.w600,
@@ -88,42 +130,7 @@ class HoSoScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Stats Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Thống kê',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      _buildStat(
-                        context,
-                        label: 'Tiền tiết kiệm',
-                        value: '2.3M đ',
-                        icon: Icons.attach_money,
-                      ),
-                      const SizedBox(width: 16),
-                      _buildStat(
-                        context,
-                        label: 'Tổng ngày',
-                        value: '45 ngày',
-                        icon: Icons.calendar_today,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 32),
 
             // Profile Menu
             Padding(
@@ -139,6 +146,19 @@ class HoSoScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.smoking_rooms,
+                    title: 'Tình trạng hút thuốc',
+                    onTap: () {
+                      final hasPlan = user?['smokingProfile']?['currentPlan'] != null;
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.smokingStatus,
+                        arguments: {'isViewOnly': hasPlan},
+                      );
+                    },
+                  ),
                   _buildMenuItem(
                     context,
                     icon: Icons.person_outline,
@@ -225,30 +245,33 @@ class HoSoScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
 
-            // Logout Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.danger,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            // Plan History Section
+            if (user?['smokingProfile'] != null && user!['smokingProfile']['pastPlans'] != null && (user['smokingProfile']['pastPlans'] as List).isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Lịch sử',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'Đăng xuất',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(height: 16),
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.history,
+                      title: 'Lịch sử hành trình',
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.planHistory);
+                      },
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ),
+            ],
 
             const SizedBox(height: 40),
           ],

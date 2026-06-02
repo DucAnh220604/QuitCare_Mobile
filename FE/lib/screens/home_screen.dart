@@ -1,42 +1,126 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../routes/app_routes.dart';
+import '../services/auth_provider.dart';
+import '../services/plan_service.dart';
+import '../services/progress_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        // Header with User Profile
-        SliverToBoxAdapter(child: _buildModernHeader(context)),
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-        // Main Content
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              const SizedBox(height: 12),
-              _buildProgressCard(context),
-              const SizedBox(height: 20),
-              _buildMotivationalCard(context),
-              const SizedBox(height: 24),
-              _buildStatsSection(context),
-              const SizedBox(height: 24),
-              _buildFeaturedSection(context),
-              const SizedBox(height: 24),
-              _buildQuickActionsSection(context),
-              const SizedBox(height: 32),
-            ]),
-          ),
-        ),
-      ],
+class _HomeScreenState extends State<HomeScreen> {
+  final PlanService _planService = PlanService();
+  final ProgressService _progressService = ProgressService();
+  Map<String, dynamic>? _recommendedPlan;
+  bool _isLoadingPlan = false;
+  
+  int _streak = 0;
+  int _moneySaved = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await _fetchRecommendedPlan();
+    await _fetchProgressStats();
+  }
+
+  Future<void> _fetchProgressStats() async {
+    final result = await _progressService.getProgressStats();
+    if (result['success'] && mounted) {
+      setState(() {
+        _streak = result['data']['streak'] ?? 0;
+        _moneySaved = result['data']['moneySaved'] ?? 0;
+      });
+    }
+  }
+
+  Future<void> _fetchRecommendedPlan() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final profile = authProvider.user?['smokingProfile'];
+    
+    // Only fetch if user has declared (cigarettesPerDay > 0)
+    if (profile != null && (profile['cigarettesPerDay'] ?? 0) > 0) {
+      setState(() => _isLoadingPlan = true);
+      final result = await _planService.getRecommendedPlan();
+      if (result['success']) {
+        setState(() {
+          _recommendedPlan = result['recommendedPlan'];
+          _isLoadingPlan = false;
+        });
+      } else {
+        setState(() => _isLoadingPlan = false);
+      }
+    }
+  }
+
+  bool _hasDeclaredProfile(Map<String, dynamic>? user) {
+    final profile = user?['smokingProfile'];
+    return profile != null && (profile['cigarettesPerDay'] ?? 0) > 0;
+  }
+
+  bool _hasSelectedPlan(Map<String, dynamic>? user) {
+    final profile = user?['smokingProfile'];
+    return profile != null && profile['currentPlan'] != null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final user = authProvider.user;
+        final hasDeclared = _hasDeclaredProfile(user);
+        final hasSelectedPlan = _hasSelectedPlan(user);
+
+        return CustomScrollView(
+          slivers: [
+            // Header with User Profile
+            SliverToBoxAdapter(child: _buildModernHeader(context, user)),
+
+            // Main Content
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: 12),
+                  
+                  if (!hasDeclared)
+                    _buildDeclarationCard(context)
+                  else if (!hasSelectedPlan)
+                    _buildPendingPlanCard(context)
+                  else ...[
+                    _buildProgressCard(context, user),
+                    const SizedBox(height: 20),
+                    _buildMotivationalCard(context),
+                  ],
+                  
+                  const SizedBox(height: 24),
+                  if (hasSelectedPlan) _buildStatsSection(context),
+                  if (hasSelectedPlan) const SizedBox(height: 24),
+                  _buildFeaturedSection(context),
+                  const SizedBox(height: 24),
+                  _buildQuickActionsSection(context),
+                  const SizedBox(height: 32),
+                ]),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   /// Modern Header with Profile
-  Widget _buildModernHeader(BuildContext context) {
+  Widget _buildModernHeader(BuildContext context, Map<String, dynamic>? user) {
+    final name = user?['fullname']?.split(' ').last ?? 'Bạn';
     return Container(
       decoration: BoxDecoration(gradient: AppColors.darkGradient),
       child: SafeArea(
@@ -53,7 +137,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Xin chào, Bạn 👋',
+                        'Xin chào, $name 👋',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: AppColors.white,
                           fontWeight: FontWeight.w700,
@@ -97,12 +181,245 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// Declaration Card if missing profile
+  Widget _buildDeclarationCard(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryBlue.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.assignment_turned_in, color: AppColors.primaryBlue, size: 40),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Khởi tạo hành trình',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Hãy khai báo tình trạng hút thuốc của bạn để hệ thống tính toán tiến trình và gợi ý Kế hoạch cai thuốc phù hợp nhất.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.smokingStatus).then((_) {
+                  _fetchData();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Khai báo ngay',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Pending Plan Card if user declared but didn't select plan
+  Widget _buildPendingPlanCard(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.warning.withValues(alpha: 0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.pending_actions, color: AppColors.warning, size: 40),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Chọn Kế hoạch của bạn',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Bạn đã khai báo thông tin nhưng chưa chọn kế hoạch cai thuốc. Hãy tiếp tục để hệ thống tính toán tiến trình cho bạn.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.planSelection).then((_) {
+                  _fetchData();
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Tiếp tục chọn Kế hoạch',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Recommended Plan Card (No longer used directly on Home, moved to Selection Screen)
+  Widget _buildRecommendedPlanCard(BuildContext context) {
+    if (_isLoadingPlan) {
+      return Center(child: CircularProgressIndicator(color: AppColors.primaryBlue));
+    }
+    
+    if (_recommendedPlan == null) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.star, color: AppColors.warning, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Kế hoạch dành cho bạn',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _recommendedPlan!['name'] ?? '',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryBlue,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _recommendedPlan!['description'] ?? '',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Độ khó: ${_recommendedPlan!['difficulty']}',
+                  style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w600, fontSize: 12),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Thời gian: ${_recommendedPlan!['durationDays']} ngày',
+                  style: TextStyle(color: AppColors.success, fontWeight: FontWeight.w600, fontSize: 12),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
   /// Progress Card with Day Counter and Savings
-  Widget _buildProgressCard(BuildContext context) {
-    const currentDay = 45;
-    const totalDays = 365;
-    const int saved = 2300000;
-    final progressPercent = currentDay / totalDays;
+  Widget _buildProgressCard(BuildContext context, Map<String, dynamic>? user) {
+    final totalDays = _recommendedPlan != null ? _recommendedPlan!['durationDays'] : 365;
+    final progressPercent = totalDays > 0 ? (_streak / totalDays).clamp(0.0, 1.0) : 0.0;
+
+    String formatMoney(int amount) {
+      if (amount >= 1000000) return '${(amount / 1000000).toStringAsFixed(1)}M';
+      if (amount >= 1000) return '${(amount / 1000).toStringAsFixed(0)}K';
+      return '$amount';
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -130,7 +447,6 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Days Counter
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -145,7 +461,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '$currentDay ngày',
+                    '$_streak ngày',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.white,
                       fontWeight: FontWeight.w700,
@@ -165,7 +481,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${(saved / 1000000).toStringAsFixed(1)}M',
+                    formatMoney(_moneySaved),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: AppColors.warning,
                       fontWeight: FontWeight.w700,
@@ -179,7 +495,6 @@ class HomeScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Progress Bar
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -307,31 +622,15 @@ class HomeScreen extends StatelessWidget {
               context,
               icon: Icons.calendar_today,
               color: AppColors.primaryBlue,
-              value: '45',
-              label: 'Ngày thứ',
+              value: '1',
+              label: 'Cấp độ hiện tại',
               backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
-            ),
-            _buildStatItem(
-              context,
-              icon: Icons.attach_money,
-              color: AppColors.success,
-              value: '2.3M',
-              label: 'Tiền tiết kiệm',
-              backgroundColor: AppColors.success.withValues(alpha: 0.1),
-            ),
-            _buildStatItem(
-              context,
-              icon: Icons.trending_up,
-              color: AppColors.brandPurple,
-              value: '12',
-              label: 'Cấp độ',
-              backgroundColor: AppColors.brandPurple.withValues(alpha: 0.1),
             ),
             _buildStatItem(
               context,
               icon: Icons.favorite,
               color: AppColors.brandPink,
-              value: 'A+',
+              value: 'Mới',
               label: 'Xếp hạng',
               backgroundColor: AppColors.brandPink.withValues(alpha: 0.1),
             ),
@@ -418,15 +717,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _buildFeatureItemEnhanced(
-          context,
-          gradient: AppColors.purpleGradient,
-          icon: Icons.lightbulb_outline,
-          title: 'Kế hoạch được đề xuất',
-          description: 'Kế hoạch tùy chỉnh phù hợp với bạn',
-          route: '/ke-hoach-de-xuat',
-        ),
-        const SizedBox(height: 12),
         _buildFeatureItemEnhanced(
           context,
           gradient: AppColors.orangeGradient,
@@ -543,10 +833,10 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionButton(
                 context,
-                icon: Icons.poll,
-                label: 'Khảo sát',
-                color: AppColors.success,
-                route: '/khao-sat',
+                icon: Icons.trending_up,
+                label: 'Tiến trình',
+                color: AppColors.brandPurple,
+                route: '/tien-trinh',
               ),
             ),
           ],
@@ -557,10 +847,26 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: _buildQuickActionButton(
                 context,
-                icon: Icons.trending_up,
-                label: 'Tiến trình',
+                icon: Icons.assignment,
+                label: 'Kế hoạch',
                 color: AppColors.brandPurple,
-                route: '/tien-trinh',
+                onTap: () async {
+                  final result = await _planService.getMyPlan();
+                  if (result['success'] && context.mounted) {
+                    Navigator.pushNamed(
+                      context,
+                      '/plan-detail',
+                      arguments: {
+                        'plan': result['plan'],
+                        'isViewOnly': true,
+                      }
+                    );
+                  } else if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Chưa có kế hoạch nào được chọn.')),
+                    );
+                  }
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -594,11 +900,14 @@ class HomeScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required Color color,
-    required String route,
+    String? route,
+    VoidCallback? onTap,
     bool isFullWidth = false,
   }) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
+      onTap: onTap ?? () {
+        if (route != null) Navigator.pushNamed(context, route);
+      },
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.white,
@@ -623,6 +932,7 @@ class HomeScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
+                      
                     ),
                     child: Icon(icon, color: color, size: 24),
                   ),
