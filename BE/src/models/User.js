@@ -87,6 +87,11 @@ const userSchema = new mongoose.Schema(
         ref: "Plan",
         default: null,
       },
+      activeQuitPlanId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "QuitPlan",
+        default: null,
+      },
       pastPlans: [
         {
           planId: { type: mongoose.Schema.Types.ObjectId, ref: "Plan" },

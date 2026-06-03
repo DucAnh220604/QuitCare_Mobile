@@ -1,5 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/colors.dart';
+import '../services/plan_service.dart';
+import '../routes/app_routes.dart';
+
+class _IntervalData {
+  final TextEditingController weekRangeController;
+  final TextEditingController cigarettesController;
+
+  _IntervalData()
+      : weekRangeController = TextEditingController(),
+        cigarettesController = TextEditingController();
+
+  void dispose() {
+    weekRangeController.dispose();
+    cigarettesController.dispose();
+  }
+}
+
+class _StageData {
+  final List<_IntervalData> intervals;
+
+  _StageData() : intervals = [_IntervalData()];
+
+  void dispose() {
+    for (final i in intervals) {
+      i.dispose();
+    }
+  }
+}
 
 class KeHoachTuTaoScreen extends StatefulWidget {
   const KeHoachTuTaoScreen({super.key});
@@ -9,7 +38,126 @@ class KeHoachTuTaoScreen extends StatefulWidget {
 }
 
 class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
-  int _currentStep = 0;
+  final PlanService _planService = PlanService();
+  final List<_StageData> _stages = [_StageData()];
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    for (final s in _stages) {
+      s.dispose();
+    }
+    super.dispose();
+  }
+
+  void _addStage() {
+    setState(() => _stages.add(_StageData()));
+  }
+
+  void _removeStage(int stageIdx) {
+    if (_stages.length <= 1) return;
+    setState(() {
+      _stages[stageIdx].dispose();
+      _stages.removeAt(stageIdx);
+    });
+  }
+
+  void _addInterval(int stageIdx) {
+    setState(() => _stages[stageIdx].intervals.add(_IntervalData()));
+  }
+
+  void _removeInterval(int stageIdx, int intervalIdx) {
+    if (_stages[stageIdx].intervals.length <= 1) return;
+    setState(() {
+      _stages[stageIdx].intervals[intervalIdx].dispose();
+      _stages[stageIdx].intervals.removeAt(intervalIdx);
+    });
+  }
+
+  String? _validate() {
+    for (int s = 0; s < _stages.length; s++) {
+      for (int i = 0; i < _stages[s].intervals.length; i++) {
+        final weekRange = _stages[s].intervals[i].weekRangeController.text.trim();
+        final cigsText = _stages[s].intervals[i].cigarettesController.text.trim();
+
+        if (weekRange.isEmpty) {
+          return 'Giai đoạn ${s + 1}, khoảng ${i + 1}: Vui lòng nhập khoảng thời gian';
+        }
+        if (cigsText.isEmpty) {
+          return 'Giai đoạn ${s + 1}, khoảng ${i + 1}: Vui lòng nhập số điếu';
+        }
+        final cigs = int.tryParse(cigsText);
+        if (cigs == null || cigs < 0 || cigs > 50) {
+          return 'Giai đoạn ${s + 1}, khoảng ${i + 1}: Số điếu phải từ 0 đến 50';
+        }
+      }
+    }
+    return null;
+  }
+
+  List<Map<String, dynamic>> _buildStages() {
+    final result = <Map<String, dynamic>>[];
+    for (int s = 0; s < _stages.length; s++) {
+      for (int i = 0; i < _stages[s].intervals.length; i++) {
+        final weekRange = _stages[s].intervals[i].weekRangeController.text.trim();
+        final cigs = int.parse(_stages[s].intervals[i].cigarettesController.text.trim());
+        result.add({
+          'stageName': 'Giai đoạn ${s + 1}',
+          'weekRange': weekRange,
+          'startDate': DateTime.now().toIso8601String(),
+          'endDate': DateTime.now().toIso8601String(),
+          'cigarettesPerDay': cigs,
+        });
+      }
+    }
+    return result;
+  }
+
+  Future<void> _savePlan() async {
+    final error = _validate();
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: AppColors.danger),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final stages = _buildStages();
+    final now = DateTime.now();
+    final planData = {
+      'type': 'custom',
+      'stages': stages,
+      'overallStartDate': now.toIso8601String(),
+      'overallEndDate': now.add(const Duration(days: 140)).toIso8601String(),
+      'addictionLevel': null,
+      'baselineCigarettes': 0,
+    };
+
+    final result = await _planService.confirmPlan(planData);
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    if (result['success'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kế hoạch đã được lưu! Bắt đầu hành trình cai thuốc.'),
+          backgroundColor: AppColors.success,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Lưu kế hoạch thất bại'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +166,14 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.primaryBlue,
-        title: const Text('Tạo kế hoạch của bạn'),
+        foregroundColor: AppColors.white,
+        title: const Text(
+          'Bảng Tự Lập Kế Hoạch',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+        ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -30,46 +182,46 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Progress
-            _buildProgressBar(context),
-            const SizedBox(height: 32),
-
-            // Step Content
-            if (_currentStep == 0) _buildStep1(context),
-            if (_currentStep == 1) _buildStep2(context),
-            if (_currentStep == 2) _buildStep3(context),
-
-            const SizedBox(height: 32),
-
-            // Navigation Buttons
+            _buildInstructionCard(),
+            const SizedBox(height: 20),
+            ..._stages.asMap().entries.map((entry) => _buildStageCard(entry.key)),
+            const SizedBox(height: 16),
             Row(
               children: [
-                if (_currentStep > 0)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => setState(() => _currentStep--),
-                      child: const Text('Quay lại'),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _addStage,
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: const Text('Thêm giai đoạn', style: TextStyle(fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.success,
+                      side: const BorderSide(color: AppColors.success, width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
-                if (_currentStep > 0) const SizedBox(width: 12),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_currentStep < 2) {
-                        setState(() => _currentStep++);
-                      } else {
-                        // Complete
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Kế hoạch đã được tạo!'),
-                          ),
-                        );
-                      }
-                    },
+                  child: ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _savePlan,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save_rounded, size: 18),
+                    label: Text(
+                      _isSaving ? 'Đang lưu...' : 'Lưu kế hoạch',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(_currentStep == 2 ? 'Hoàn thành' : 'Tiếp tục'),
                   ),
                 ),
               ],
@@ -81,190 +233,284 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
     );
   }
 
-  Widget _buildProgressBar(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Bước ${_currentStep + 1} / 3',
-          style: Theme.of(
-            context,
-          ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: (_currentStep + 1) / 3,
-            minHeight: 6,
-            backgroundColor: AppColors.lightGrey,
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep1(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Mục tiêu của bạn',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildOption(
-          context,
-          title: 'Bỏ hoàn toàn',
-          description: 'Dừng sử dụng thuốc hoàn toàn',
-          icon: Icons.check_circle_outline,
-        ),
-        const SizedBox(height: 12),
-        _buildOption(
-          context,
-          title: 'Giảm dần',
-          description: 'Giảm lượng thuốc theo thời gian',
-          icon: Icons.trending_down,
-        ),
-        const SizedBox(height: 12),
-        _buildOption(
-          context,
-          title: 'Quản lý',
-          description: 'Kiểm soát thói quen hút thuốc',
-          icon: Icons.balance,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep2(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Thời gian mong muốn',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildOption(
-          context,
-          title: '30 ngày',
-          description: 'Bỏ nhanh',
-          icon: Icons.flash_on,
-        ),
-        const SizedBox(height: 12),
-        _buildOption(
-          context,
-          title: '60 ngày',
-          description: 'Cân bằng',
-          icon: Icons.equalizer,
-        ),
-        const SizedBox(height: 12),
-        _buildOption(
-          context,
-          title: '90 ngày',
-          description: 'Từ từ và an toàn',
-          icon: Icons.spa,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep3(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Hỗ trợ bổ sung',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildCheckbox(context, label: 'Nhận thông báo hàng ngày'),
-        const SizedBox(height: 12),
-        _buildCheckbox(context, label: 'Tham gia cộng đồng'),
-        const SizedBox(height: 12),
-        _buildCheckbox(context, label: 'Tư vấn từ chuyên gia'),
-        const SizedBox(height: 12),
-        _buildCheckbox(context, label: 'Theo dõi sức khỏe'),
-      ],
-    );
-  }
-
-  Widget _buildOption(
-    BuildContext context, {
-    required String title,
-    required String description,
-    required IconData icon,
-  }) {
+  Widget _buildInstructionCard() {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider, width: 1),
+        color: const Color(0xFFE8F4FD),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFBBDEFB), width: 1),
       ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.primaryBlue, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
+          const Row(
+            children: [
+              Text('💡', style: TextStyle(fontSize: 18)),
+              SizedBox(width: 8),
+              Text(
+                'Hướng dẫn tạo kế hoạch linh hoạt:',
+                style: TextStyle(
+                  color: Color(0xFF1565C0),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _bullet('Bạn có thể tạo nhiều giai đoạn (ví dụ: Giai đoạn 1, 2, 3...)'),
+          _bullet('Mỗi giai đoạn có thể có nhiều khoảng thời gian khác nhau'),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+                const Text(
+                  'Định dạng khoảng thời gian hợp lệ:',
+                  style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.w600, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
+                _validFormat('✓ "Tuần 1 - 2", "Tuần 3-5", "Tuần 1"'),
+                _validFormat('✓ "Tuần 1 đến 3", "Tuần 1 - Tuần 3"'),
               ],
             ),
           ),
-          Icon(Icons.radio_button_unchecked, color: AppColors.primaryBlue),
+          const SizedBox(height: 6),
+          _bulletCheck('Có thể thêm/xóa giai đoạn và khoảng thời gian'),
+          _bulletCheck('Có thể chỉnh sửa cả khoảng thời gian và số điếu thuốc'),
+          _bulletCheck('Số điếu/ngày phải từ 1 đến 50 (0 = hoàn toàn cai)'),
         ],
       ),
     );
   }
 
-  Widget _buildCheckbox(BuildContext context, {required String label}) {
+  Widget _bullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ', style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Color(0xFF1E3A5F), fontSize: 13)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bulletCheck(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('✅ ', style: TextStyle(fontSize: 13)),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Color(0xFF1E3A5F), fontSize: 13)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _validFormat(String text) {
+    return Text(
+      text,
+      style: const TextStyle(color: Color(0xFF2E7D32), fontSize: 12, fontFamily: 'monospace'),
+    );
+  }
+
+  Widget _buildStageCard(int stageIdx) {
+    final stage = _stages[stageIdx];
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.divider, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
       ),
-      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          // Stage header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlue.withValues(alpha: 0.06),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${stageIdx + 1}',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Giai đoạn ${stageIdx + 1}',
+                    style: TextStyle(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+                if (_stages.length > 1)
+                  IconButton(
+                    onPressed: () => _removeStage(stageIdx),
+                    icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Xóa giai đoạn',
+                  ),
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: () => _addInterval(stageIdx),
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('Thêm khoảng', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.success,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    backgroundColor: AppColors.success.withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Table header row
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.lightGrey.withValues(alpha: 0.4),
+            ),
+            child: Row(
+              children: [
+                const Expanded(
+                  flex: 5,
+                  child: Text(
+                    'Khoảng thời gian',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const Expanded(
+                  flex: 4,
+                  child: Text(
+                    'Số điếu mỗi ngày trong khoảng này',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 32),
+              ],
+            ),
+          ),
+
+          // Interval rows
+          ...stage.intervals.asMap().entries.map(
+            (entry) => _buildIntervalRow(stageIdx, entry.key),
+          ),
+
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIntervalRow(int stageIdx, int intervalIdx) {
+    final interval = _stages[stageIdx].intervals[intervalIdx];
+    final canRemove = _stages[stageIdx].intervals.length > 1;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Row(
         children: [
-          Checkbox(
-            value: true,
-            onChanged: (_) {},
-            activeColor: AppColors.primaryBlue,
+          Expanded(
+            flex: 5,
+            child: TextFormField(
+              controller: interval.weekRangeController,
+              decoration: InputDecoration(
+                hintText: 'Ví dụ: Tuần 1 - 2, Tuần 1',
+                hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppColors.divider),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                ),
+                filled: true,
+                fillColor: AppColors.background,
+              ),
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
           const SizedBox(width: 8),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: AppColors.textPrimary),
+          Expanded(
+            flex: 4,
+            child: TextFormField(
+              controller: interval.cigarettesController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                hintText: '0-50 điếu/ngày',
+                hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 11),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppColors.divider),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                ),
+                filled: true,
+                fillColor: AppColors.background,
+              ),
+              style: const TextStyle(fontSize: 13),
+            ),
+          ),
+          const SizedBox(width: 4),
+          SizedBox(
+            width: 32,
+            child: canRemove
+                ? IconButton(
+                    onPressed: () => _removeInterval(stageIdx, intervalIdx),
+                    icon: const Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  )
+                : const SizedBox(),
           ),
         ],
       ),
