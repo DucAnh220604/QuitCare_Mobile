@@ -355,7 +355,7 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           onChanged: _isViewOnly ? null : onChanged,
           items: items.map((item) {
             return DropdownMenuItem(
