@@ -69,7 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _hasSelectedPlan(Map<String, dynamic>? user) {
     final profile = user?['smokingProfile'];
-    return profile != null && profile['currentPlan'] != null;
+    if (profile == null) return false;
+    return profile['currentPlan'] != null || profile['activeQuitPlanId'] != null;
   }
 
   @override
@@ -850,23 +851,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.assignment,
                 label: 'Kế hoạch',
                 color: AppColors.brandPurple,
-                onTap: () async {
-                  final result = await _planService.getMyPlan();
-                  if (result['success'] && context.mounted) {
-                    Navigator.pushNamed(
-                      context,
-                      '/plan-detail',
-                      arguments: {
-                        'plan': result['plan'],
-                        'isViewOnly': true,
-                      }
-                    );
-                  } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Chưa có kế hoạch nào được chọn.')),
-                    );
-                  }
-                },
+                route: AppRoutes.keHoachCuaToi,
               ),
             ),
             const SizedBox(width: 12),

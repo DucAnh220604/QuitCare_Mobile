@@ -15,7 +15,7 @@ class TienTrinhScreen extends StatefulWidget {
 class _TienTrinhScreenState extends State<TienTrinhScreen> {
   final _progressService = ProgressService();
   bool _isLoading = true;
-  
+
   int _streak = 0;
   int _moneySaved = 0;
   int _totalAvoided = 0;
@@ -23,6 +23,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
   int _logsCount = 0;
   bool _hasCheckedInToday = false;
   bool _isCompleting = false;
+  Map<String, dynamic>? _quitPlanInfo;
 
   @override
   void initState() {
@@ -33,7 +34,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
   Future<void> _fetchStats() async {
     setState(() => _isLoading = true);
     final result = await _progressService.getProgressStats();
-    
+
     if (result['success']) {
       setState(() {
         _streak = result['data']['streak'] ?? 0;
@@ -42,6 +43,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         _hasCheckedInToday = result['data']['hasCheckedInToday'] ?? false;
         _durationDays = result['data']['durationDays'] ?? 0;
         _logsCount = result['data']['logsCount'] ?? 0;
+        _quitPlanInfo = result['data']['quitPlan'] as Map<String, dynamic>?;
       });
     }
     setState(() => _isLoading = false);
@@ -119,13 +121,6 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(child: CircularProgressIndicator(color: AppColors.primaryBlue)),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -137,11 +132,11 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
           IconButton(
             icon: const Icon(Icons.electric_bolt, color: AppColors.warning),
             tooltip: 'Giả lập dữ liệu Demo',
-            onPressed: _forceSimulate,
+            onPressed: _isLoading ? null : _forceSimulate,
           ),
         ],
       ),
-      floatingActionButton: _isCompleted
+      floatingActionButton: _isLoading ? null : (_isCompleted
           ? FloatingActionButton.extended(
               onPressed: _isCompleting ? null : _completePlan,
               backgroundColor: AppColors.success,
@@ -161,15 +156,24 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
                   icon: const Icon(Icons.assignment_turned_in, color: Colors.white),
                   label: const Text('Ghi nhận hôm nay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 )
-              : null),
-      body: SingleChildScrollView(
+              : null)),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue))
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Main Stats
             _buildMainStatCard(context),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+
+            // Plan / Stage info (if user has a QuitPlan)
+            if (_quitPlanInfo != null) ...[
+              _buildPlanInfoCard(context),
+              const SizedBox(height: 16),
+            ],
+            const SizedBox(height: 16),
 
             // Milestones
             Text(
@@ -276,6 +280,140 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
           style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.white.withValues(alpha: 0.9)),
         ),
       ],
+    );
+  }
+
+  String _formatDate(dynamic dateVal) {
+    if (dateVal == null) return '--';
+    final dt = DateTime.tryParse(dateVal.toString());
+    if (dt == null) return '--';
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
+  Widget _buildPlanInfoCard(BuildContext context) {
+    final info = _quitPlanInfo!;
+    final currentStage = info['currentStage'] as Map<String, dynamic>?;
+    final currentIdx = (info['currentStageIndex'] as int?) ?? -1;
+    final totalStages = (info['totalStages'] as int?) ?? 0;
+    final overallProgress = (info['overallProgress'] as num?)?.toDouble() ?? 0.0;
+    final type = info['type'] as String? ?? 'suggested';
+    final overallEnd = _formatDate(info['overallEndDate']);
+
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2), width: 1),
+          boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: const Offset(0, 3))],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  type == 'suggested' ? Icons.auto_awesome : Icons.edit_note_rounded,
+                  color: AppColors.primaryBlue,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    type == 'suggested' ? 'Kế hoạch đề xuất' : 'Kế hoạch tự lập',
+                    style: const TextStyle(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 14),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Overall progress bar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Tiến độ tổng thể',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+                Text(
+                  '${(overallProgress * 100).toStringAsFixed(1)}% • Kết thúc: $overallEnd',
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: overallProgress,
+                minHeight: 8,
+                backgroundColor: AppColors.divider,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+              ),
+            ),
+
+            if (currentStage != null) ...[
+              const SizedBox(height: 14),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'GĐ ${currentIdx + 1}/$totalStages',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          currentStage['stageName'] ?? '',
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          () {
+                            final cigs = currentStage['cigarettesPerDay'] as int? ?? 0;
+                            return cigs == 0
+                                ? '🎯 Mục tiêu: Hoàn toàn cai thuốc'
+                                : '🎯 Mục tiêu: $cigs điếu/ngày';
+                          }(),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                        Text(
+                          '📅 ${_formatDate(currentStage['startDate'])} → ${_formatDate(currentStage['endDate'])}',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

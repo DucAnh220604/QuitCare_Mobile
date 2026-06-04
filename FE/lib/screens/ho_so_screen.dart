@@ -3,53 +3,32 @@ import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../services/auth_provider.dart';
 import '../routes/app_routes.dart';
-import '../services/progress_service.dart';
 
-class HoSoScreen extends StatefulWidget {
+class HoSoScreen extends StatelessWidget {
   const HoSoScreen({super.key});
 
-  @override
-  State<HoSoScreen> createState() => _HoSoScreenState();
-}
-
-class _HoSoScreenState extends State<HoSoScreen> {
-  final ProgressService _progressService = ProgressService();
-  int _moneySaved = 0;
-  int _streak = 0;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchStats();
+  bool _hasDeclaredProfile(Map<String, dynamic>? user) {
+    final profile = user?['smokingProfile'];
+    return profile != null && (profile['cigarettesPerDay'] ?? 0) > 0;
   }
 
-  Future<void> _fetchStats() async {
-    final result = await _progressService.getProgressStats();
-    if (result['success'] && mounted) {
-      setState(() {
-        _moneySaved = result['data']['moneySaved'] ?? 0;
-        _streak = result['data']['streak'] ?? 0;
-      });
-    }
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+  bool _hasPlan(Map<String, dynamic>? user) {
+    final profile = user?['smokingProfile'];
+    if (profile == null) return false;
+    return profile['currentPlan'] != null || profile['activeQuitPlanId'] != null;
   }
 
-  String _formatMoney(int amount) {
-    if (amount >= 1000000) {
-      return '${(amount / 1000000).toStringAsFixed(1)}M đ';
-    } else if (amount >= 1000) {
-      return '${(amount / 1000).toStringAsFixed(0)}K đ';
-    }
-    return '$amount đ';
+  bool _hasPastPlans(Map<String, dynamic>? user) {
+    final pastPlans = user?['smokingProfile']?['pastPlans'] as List?;
+    return pastPlans != null && pastPlans.isNotEmpty;
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
+    final hasDeclared = _hasDeclaredProfile(user);
+    final hasPlan = _hasPlan(user);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,73 +45,21 @@ class _HoSoScreenState extends State<HoSoScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header Profile Section
-            Container(
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-              ),
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-              child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Avatar
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.lightBlue,
-                          width: 3,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.person,
-                        size: 60,
-                        color: AppColors.primaryBlue,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user?['fullname'] ?? 'N/A',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        'Cấp độ 12 • 45 ngày',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: AppColors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // ── Header ──────────────────────────────────────────────────────
+            _buildHeader(context, user),
 
             const SizedBox(height: 24),
 
+            // ── Survey Card (shown once declared, read-only once has plan) ──
+            if (hasDeclared) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _buildSurveyCard(context, user, hasPlan),
+              ),
+              const SizedBox(height: 24),
+            ],
 
-
-            // Profile Menu
+            // ── Cài đặt ─────────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -146,57 +73,36 @@ class _HoSoScreenState extends State<HoSoScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.smoking_rooms,
-                    title: 'Tình trạng hút thuốc',
-                    onTap: () {
-                      final hasPlan = user?['smokingProfile']?['currentPlan'] != null;
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.smokingStatus,
-                        arguments: {'isViewOnly': hasPlan},
-                      );
-                    },
-                  ),
+                  if (hasPlan)
+                    _buildMenuItem(
+                      context,
+                      icon: Icons.assignment,
+                      title: 'Kế hoạch của tôi',
+                      subtitle: 'Xem chi tiết kế hoạch đang thực hiện',
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
+                    ),
                   _buildMenuItem(
                     context,
                     icon: Icons.person_outline,
                     title: 'Thông tin cá nhân',
                     onTap: () async {
-                      final authProvider =
-                          Provider.of<AuthProvider>(context, listen: false);
-
-                      // Show loading dialog
+                      final ap = Provider.of<AuthProvider>(context, listen: false);
                       showDialog(
                         context: context,
                         barrierDismissible: false,
-                        builder: (context) => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        builder: (_) => const Center(child: CircularProgressIndicator()),
                       );
-
-                      final success = await authProvider.fetchProfile();
-
-                      // Hide loading dialog
+                      final success = await ap.fetchProfile();
                       if (context.mounted) Navigator.pop(context);
-
-                      if (success) {
-                        if (context.mounted) {
-                          Navigator.pushNamed(context, AppRoutes.profileDetail);
-                        }
-                      } else {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                authProvider.errorMessage ??
-                                    'Lỗi khi lấy thông tin',
-                              ),
-                              backgroundColor: AppColors.danger,
-                            ),
-                          );
-                        }
+                      if (success && context.mounted) {
+                        Navigator.pushNamed(context, AppRoutes.profileDetail);
+                      } else if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(ap.errorMessage ?? 'Lỗi khi lấy thông tin'),
+                            backgroundColor: AppColors.danger,
+                          ),
+                        );
                       }
                     },
                   ),
@@ -206,7 +112,7 @@ class _HoSoScreenState extends State<HoSoScreen> {
 
             const SizedBox(height: 32),
 
-            // About Section
+            // ── Về ứng dụng ─────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -245,8 +151,8 @@ class _HoSoScreenState extends State<HoSoScreen> {
 
             const SizedBox(height: 32),
 
-            // Plan History Section
-            if (user?['smokingProfile'] != null && user!['smokingProfile']['pastPlans'] != null && (user['smokingProfile']['pastPlans'] as List).isNotEmpty) ...[
+            // ── Lịch sử ─────────────────────────────────────────────────────
+            if (_hasPastPlans(user)) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
@@ -264,9 +170,7 @@ class _HoSoScreenState extends State<HoSoScreen> {
                       context,
                       icon: Icons.history,
                       title: 'Lịch sử hành trình',
-                      onTap: () {
-                        Navigator.pushNamed(context, AppRoutes.planHistory);
-                      },
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.planHistory),
                     ),
                   ],
                 ),
@@ -280,102 +184,190 @@ class _HoSoScreenState extends State<HoSoScreen> {
     );
   }
 
-  void _showProfileDialog(BuildContext context, Map<String, dynamic> userData) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Thông tin cá nhân'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+  // ── Header ────────────────────────────────────────────────────────────────
+
+  Widget _buildHeader(BuildContext context, Map<String, dynamic>? user) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildProfileInfoItem('Họ tên', userData['fullname'] ?? 'N/A'),
-            const SizedBox(height: 12),
-            _buildProfileInfoItem('Email', userData['email'] ?? 'N/A'),
-            const SizedBox(height: 12),
-            _buildProfileInfoItem('Số điện thoại', userData['phone'] ?? 'N/A'),
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.lightBlue, width: 3),
+              ),
+              child: const Icon(Icons.person, size: 60, color: AppColors.primaryBlue),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              user?['fullname'] ?? 'N/A',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              user?['email'] ?? '',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.white.withValues(alpha: 0.8),
+              ),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+      ),
+    );
+  }
+
+  // ── Survey data card ─────────────────────────────────────────────────────
+
+  Widget _buildSurveyCard(
+    BuildContext context,
+    Map<String, dynamic>? user,
+    bool isViewOnly,
+  ) {
+    final profile = user?['smokingProfile'] ?? {};
+    final cigs = profile['cigarettesPerDay'] ?? 0;
+    final years = profile['smokingYears'] ?? 0;
+    final craving = profile['morningCravingLevel'] ?? '--';
+    final reason = profile['quitReason'] ?? '--';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2), width: 1),
+        boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: const Offset(0, 3))],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.assignment_turned_in, color: AppColors.primaryBlue, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Khảo sát hút thuốc',
+                style: TextStyle(
+                  color: AppColors.primaryBlue,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
+              ),
+              const Spacer(),
+              if (!isViewOnly)
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.smokingStatus),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Chỉnh sửa',
+                      style: TextStyle(
+                        color: AppColors.primaryBlue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Đã hoàn thành',
+                    style: TextStyle(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 14),
+          _surveyRow('🚬', 'Số điếu/ngày (ban đầu)', '$cigs điếu'),
+          const SizedBox(height: 10),
+          _surveyRow('📅', 'Số năm hút thuốc', '$years năm'),
+          const SizedBox(height: 10),
+          _surveyRow('🌅', 'Thèm thuốc buổi sáng', craving.toString()),
+          const SizedBox(height: 10),
+          _surveyRow('💡', 'Lý do cai thuốc', reason.toString()),
+          if (isViewOnly) ...[
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => Navigator.pushNamed(
+                context,
+                AppRoutes.smokingStatus,
+                arguments: {'isViewOnly': true},
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.visibility_outlined, color: AppColors.textSecondary, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    'Xem chi tiết khảo sát',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                  Spacer(),
+                  Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 13),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildProfileInfoItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _surveyRow(String emoji, String label, String value) {
+    return Row(
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-            fontSize: 12,
+        Text(emoji, style: const TextStyle(fontSize: 16)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
           ),
         ),
-        const SizedBox(height: 4),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStat(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: AppColors.primaryBlue, size: 24),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ── Menu item ─────────────────────────────────────────────────────────────
 
   Widget _buildMenuItem(
     BuildContext context, {
@@ -383,16 +375,13 @@ class _HoSoScreenState extends State<HoSoScreen> {
     required String title,
     String? subtitle,
     required VoidCallback onTap,
-    bool isSwitch = false,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: AppColors.divider, width: 1),
-          ),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
         ),
         child: Row(
           children: [
@@ -419,18 +408,7 @@ class _HoSoScreenState extends State<HoSoScreen> {
                 ],
               ),
             ),
-            if (isSwitch)
-              Switch(
-                value: false,
-                onChanged: (_) {},
-                activeThumbColor: AppColors.primaryBlue,
-              )
-            else
-              Icon(
-                Icons.arrow_forward_ios,
-                color: AppColors.textSecondary,
-                size: 16,
-              ),
+            const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 16),
           ],
         ),
       ),

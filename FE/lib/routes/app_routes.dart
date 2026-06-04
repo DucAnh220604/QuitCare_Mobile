@@ -15,6 +15,7 @@ import '../screens/daily_checkin_screen.dart';
 import '../screens/plan_selection_screen.dart';
 import '../screens/plan_detail_screen.dart';
 import '../screens/plan_history_screen.dart';
+import '../screens/ke_hoach_cua_toi_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -34,6 +35,7 @@ class AppRoutes {
   static const String planSelection = '/plan-selection';
   static const String planDetail = '/plan-detail';
   static const String planHistory = '/plan-history';
+  static const String keHoachCuaToi = '/ke-hoach-cua-toi';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -80,6 +82,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const MainApp());
       case planHistory:
         return MaterialPageRoute(builder: (_) => const PlanHistoryScreen());
+      case keHoachCuaToi:
+        return MaterialPageRoute(builder: (_) => const KeHoachCuaToiScreen());
       default:
         return MaterialPageRoute(builder: (_) => const MainApp());
     }

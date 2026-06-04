@@ -1,6 +1,7 @@
 import DailyLog from "../models/DailyLog.js";
 import User from "../models/User.js";
 import Plan from "../models/Plan.js";
+import QuitPlan from "../models/QuitPlan.js";
 
 // Helper: Normalize date to Midnight UTC
 const getMidnight = (dateString) => {
@@ -132,7 +133,52 @@ export const getProgressStats = async (req, res) => {
     const price = profile.pricePerCigarette || 1000;
     const moneySaved = totalAvoided * price;
 
-    const durationDays = profile.currentPlan ? profile.currentPlan.durationDays : 0;
+    // Fetch active QuitPlan stage info if exists
+    let quitPlanInfo = null;
+    if (profile.activeQuitPlanId) {
+      const quitPlan = await QuitPlan.findById(profile.activeQuitPlanId);
+      if (quitPlan) {
+        const now = new Date();
+        let currentStage = null;
+        let currentStageIndex = -1;
+        for (let i = 0; i < quitPlan.stages.length; i++) {
+          const stage = quitPlan.stages[i];
+          if (now >= new Date(stage.startDate) && now <= new Date(stage.endDate)) {
+            currentStage = stage;
+            currentStageIndex = i;
+            break;
+          }
+        }
+        if (!currentStage && quitPlan.stages.length > 0) {
+          if (now < new Date(quitPlan.stages[0].startDate)) {
+            currentStage = quitPlan.stages[0];
+            currentStageIndex = 0;
+          } else {
+            currentStage = quitPlan.stages[quitPlan.stages.length - 1];
+            currentStageIndex = quitPlan.stages.length - 1;
+          }
+        }
+        const overallStart = new Date(quitPlan.overallStartDate);
+        const overallEnd = new Date(quitPlan.overallEndDate);
+        const overallDays = Math.max(1, Math.round((overallEnd - overallStart) / 86400000));
+        const elapsedDays = Math.max(0, Math.round((now - overallStart) / 86400000));
+        quitPlanInfo = {
+          type: quitPlan.type,
+          addictionLevel: quitPlan.addictionLevel,
+          currentStage,
+          currentStageIndex,
+          totalStages: quitPlan.stages.length,
+          overallStartDate: quitPlan.overallStartDate,
+          overallEndDate: quitPlan.overallEndDate,
+          overallProgress: Math.min(1, elapsedDays / overallDays),
+          durationDays: overallDays,
+        };
+      }
+    }
+
+    const durationDays = profile.currentPlan
+      ? profile.currentPlan.durationDays
+      : (quitPlanInfo?.durationDays ?? 0);
 
     res.status(200).json({
       success: true,
@@ -143,6 +189,7 @@ export const getProgressStats = async (req, res) => {
         hasCheckedInToday,
         logsCount: fullLogs.length,
         durationDays,
+        quitPlan: quitPlanInfo,
       },
     });
   } catch (error) {
@@ -170,14 +217,22 @@ export const forceSimulate = async (req, res) => {
     const user = await User.findById(req.user.id).populate("smokingProfile.currentPlan");
     const profile = user.smokingProfile;
 
-    if (!profile || !profile.currentPlan) {
+    if (!profile || (!profile.currentPlan && !profile.activeQuitPlanId)) {
       return res.status(400).json({
         success: false,
         message: "Người dùng chưa chọn kế hoạch cai thuốc",
       });
     }
 
-    const durationDays = profile.currentPlan.durationDays || 30;
+    let durationDays = profile.currentPlan?.durationDays || 30;
+    if (!profile.currentPlan && profile.activeQuitPlanId) {
+      const qp = await QuitPlan.findById(profile.activeQuitPlanId);
+      if (qp) {
+        durationDays = Math.max(1, Math.round(
+          (new Date(qp.overallEndDate) - new Date(qp.overallStartDate)) / 86400000
+        ));
+      }
+    }
 
     // Set quitDate to (durationDays) days ago
     const newQuitDate = getMidnight(new Date());
@@ -231,49 +286,63 @@ export const completePlan = async (req, res) => {
     const user = await User.findById(req.user.id).populate("smokingProfile.currentPlan");
     const profile = user.smokingProfile;
 
-    if (!profile || !profile.currentPlan) {
+    if (!profile || (!profile.currentPlan && !profile.activeQuitPlanId)) {
       return res.status(400).json({ success: false, message: "Không có kế hoạch nào đang chạy" });
     }
 
-    const currentPlan = profile.currentPlan;
     const today = getMidnight(new Date());
-    
-    // Calculate final stats (we need total avoided and streak)
+
+    // Resolve plan identity (predefined Plan or QuitPlan)
+    let archivePlanId = null;
+    let archivePlanName = "Kế hoạch cai thuốc";
+
+    if (profile.currentPlan) {
+      archivePlanId = profile.currentPlan._id;
+      archivePlanName = profile.currentPlan.name;
+    } else if (profile.activeQuitPlanId) {
+      const qp = await QuitPlan.findById(profile.activeQuitPlanId);
+      if (qp) {
+        archivePlanName = qp.type === "suggested" ? "Kế hoạch đề xuất" : "Kế hoạch tự lập";
+        // Deactivate quit plan
+        qp.isConfirmed = false;
+        await qp.save();
+      }
+    }
+
+    // Calculate final stats
     const logs = await DailyLog.find({ userId: req.user.id });
-    
     let totalAvoided = 0;
     logs.forEach(log => {
-      const avoided = Math.max(0, profile.cigarettesPerDay - log.cigarettesSmoked);
-      totalAvoided += avoided;
+      totalAvoided += Math.max(0, profile.cigarettesPerDay - log.cigarettesSmoked);
     });
-    
     const price = profile.pricePerCigarette || 1000;
     const moneySaved = totalAvoided * price;
 
-    // Push to pastPlans
+    // Archive to pastPlans
     profile.pastPlans = profile.pastPlans || [];
     profile.pastPlans.push({
-      planId: currentPlan._id,
-      planName: currentPlan.name,
+      ...(archivePlanId ? { planId: archivePlanId } : {}),
+      planName: archivePlanName,
       startDate: profile.quitDate,
       endDate: today,
-      moneySaved: moneySaved,
+      moneySaved,
       daysStreak: logs.length,
       cigarettesAvoided: totalAvoided,
     });
 
-    // Reset currentPlan and reset quitDate to today for the next plan
+    // Reset plan references and quit date
     profile.currentPlan = null;
+    profile.activeQuitPlanId = null;
     profile.quitDate = today;
     await user.save();
 
-    // Delete old logs so they don't carry over to the next plan!
+    // Clear logs so they don't carry over to the next plan
     await DailyLog.deleteMany({ userId: req.user.id });
 
     res.status(200).json({
       success: true,
       message: "Chúc mừng bạn đã hoàn thành Kế hoạch cai thuốc!",
-      pastPlans: profile.pastPlans
+      pastPlans: profile.pastPlans,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
