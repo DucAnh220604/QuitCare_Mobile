@@ -7,6 +7,7 @@ import membershipRoutes from "./routes/membership.js";
 import planRoutes from "./routes/planRoutes.js";
 import progressRoutes from "./routes/progressRoutes.js";
 import quitPlanRoutes from "./routes/quitPlanRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js";
 
 // Load env variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use("/api/membership", membershipRoutes);
 app.use("/api/plans", planRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/quit-plan", quitPlanRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

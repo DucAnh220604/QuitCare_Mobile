@@ -49,6 +49,11 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: null,
       },
+      doctorCalls: {
+        totalAllowed: { type: Number, default: 0 },
+        callsUsed: { type: Number, default: 0 },
+        expireAt: { type: Date, default: null },
+      },
     },
     createdAt: {
       type: Date,

@@ -63,6 +63,19 @@ const registerMembership = async (req, res) => {
     // Generate mock transaction ID
     const transactionId = `TXN_${Date.now()}_${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
 
+    let doctorCallsData = {
+      totalAllowed: 0,
+      callsUsed: 0,
+      expireAt: null,
+    };
+
+    if (packageId === "199k") {
+      doctorCallsData.totalAllowed = 4;
+      const expireDate = new Date();
+      expireDate.setDate(expireDate.getDate() + 30);
+      doctorCallsData.expireAt = expireDate;
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user.id,
       {
@@ -70,6 +83,7 @@ const registerMembership = async (req, res) => {
         "membership.status": "active",
         "membership.startDate": new Date(),
         "membership.transactionId": transactionId,
+        "membership.doctorCalls": doctorCallsData,
       },
       { new: true, runValidators: false }
     );

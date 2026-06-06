@@ -1,13 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 
 class MembershipService {
   static String get baseUrl => '${AppConfig.apiBase}/membership';
   static const String tokenKey = 'auth_token';
 
-  final storage = const FlutterSecureStorage();
+  final storage = FlutterSecureStorage(
+    webOptions: kIsWeb
+        ? const WebOptions(dbName: 'quitcare_storage', publicKey: 'quitcare')
+        : const WebOptions(),
+  );
 
   /// Get available membership packages
   Future<Map<String, dynamic>> getPackages() async {

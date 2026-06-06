@@ -323,7 +323,7 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Xác nhận thanh toán'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -340,20 +340,20 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
             const SizedBox(height: 16),
             Text(
               'Bạn có chắc chắn muốn đăng ký gói này không?',
-              style: Theme.of(context).textTheme.bodySmall,
+              style: Theme.of(dialogContext).textTheme.bodySmall,
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Hủy'),
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               await _processPayment(
-                context,
+                this.context, // Truyền context của Screen thay vì dialog
                 package['id'],
                 membershipProvider,
               );
@@ -448,7 +448,6 @@ class _GoiThanhVienScreenState extends State<GoiThanhVienScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.divider, width: 1),
       ),

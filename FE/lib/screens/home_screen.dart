@@ -5,6 +5,7 @@ import '../routes/app_routes.dart';
 import '../services/auth_provider.dart';
 import '../services/plan_service.dart';
 import '../services/progress_service.dart';
+import '../screens/booking_doctor_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -827,7 +828,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.calendar_month,
                 label: 'Đặt lịch',
                 color: AppColors.primaryBlue,
-                route: '/dat-lich-hen',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BookingDoctorScreen()),
+                ),
               ),
             ),
             const SizedBox(width: 12),

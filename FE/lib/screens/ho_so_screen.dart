@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../services/auth_provider.dart';
 import '../routes/app_routes.dart';
+import '../screens/my_appointments_screen.dart';
 
 class HoSoScreen extends StatelessWidget {
   const HoSoScreen({super.key});
@@ -81,6 +82,20 @@ class HoSoScreen extends StatelessWidget {
                       subtitle: 'Xem chi tiết kế hoạch đang thực hiện',
                       onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
                     ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.video_camera_front,
+                    title: 'Lịch tư vấn Bác sĩ',
+                    subtitle: 'Quản lý lịch hẹn Google Meet',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyAppointmentsScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _buildMenuItem(
                     context,
                     icon: Icons.person_outline,
