@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Duc Anh/AppData/Local/Pub/Cache/**)",
+      "Bash(flutter sdk-path *)",
+      "Bash(dart --version)",
+      "Bash(where flutter *)",
+      "Bash(grep -l \"flame\\\\|nosign\" \"D:/src/flutter/packages/flutter/lib/src/cupertino/icons.dart\" 2>&1 | head -3)",
+      "Read(//d/src/flutter/packages/flutter/lib/src/cupertino/**)"
+    ]
+  }
+}

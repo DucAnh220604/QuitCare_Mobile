@@ -60,6 +60,23 @@ class ProgressService {
     }
   }
 
+  Future<Map<String, dynamic>> getHistory() async {
+    try {
+      final token = await storage.read(key: tokenKey);
+      if (token == null) return {'success': false, 'message': 'No token found'};
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/history'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      final data = jsonDecode(response.body);
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: ${e.toString()}'};
+    }
+  }
+
   Future<Map<String, dynamic>> forceSimulate() async {
     try {
       final token = await storage.read(key: tokenKey);
