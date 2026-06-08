@@ -119,87 +119,129 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
     return '$amount đ';
   }
 
+  String _formatDate(dynamic dateVal) {
+    if (dateVal == null) return '--';
+    final dt = DateTime.tryParse(dateVal.toString());
+    if (dt == null) return '--';
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        title: const Text('Tiến trình của bạn'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.electric_bolt, color: AppColors.warning),
-            tooltip: 'Giả lập dữ liệu Demo',
-            onPressed: _isLoading ? null : _forceSimulate,
-          ),
-        ],
-      ),
-      floatingActionButton: _isLoading ? null : (_isCompleted
-          ? FloatingActionButton.extended(
-              onPressed: _isCompleting ? null : _completePlan,
-              backgroundColor: AppColors.success,
-              icon: _isCompleting
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Icon(Icons.emoji_events, color: Colors.white),
-              label: Text(_isCompleting ? 'Đang xử lý...' : 'Hoàn tất Kế hoạch', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            )
-          : (!_hasCheckedInToday
-              ? FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.dailyCheckin).then((val) {
-                      if (val == true) _fetchStats();
-                    });
-                  },
-                  backgroundColor: AppColors.warning,
-                  icon: const Icon(Icons.assignment_turned_in, color: Colors.white),
-                  label: const Text('Ghi nhận hôm nay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                )
-              : null)),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue))
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Main Stats
-            _buildMainStatCard(context),
-            const SizedBox(height: 16),
-
-            // Plan / Stage info (if user has a QuitPlan)
-            if (_quitPlanInfo != null) ...[
-              _buildPlanInfoCard(context),
-              const SizedBox(height: 16),
-            ],
-            const SizedBox(height: 16),
-
-            // Milestones
-            Text(
-              'Cột mốc sức khỏe',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: AppColors.primaryBlue,
+          title: const Text('Tiến trình của bạn'),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.electric_bolt, color: AppColors.warning),
+              tooltip: 'Giả lập dữ liệu Demo',
+              onPressed: _isLoading ? null : _forceSimulate,
             ),
-            const SizedBox(height: 16),
-            _buildMilestonesList(context),
-            const SizedBox(height: 32),
-
-            // Benefits
-            Text(
-              'Lợi ích sức khỏe',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildBenefitsGrid(context),
-            const SizedBox(height: 80), // Padding for FAB
           ],
+          bottom: const TabBar(
+            indicatorColor: Colors.white,
+            indicatorWeight: 3,
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 15),
+            tabs: [
+              Tab(text: 'Tổng quan'),
+              Tab(text: 'Hồi phục'),
+            ],
+          ),
         ),
+        floatingActionButton: _isLoading ? null : (_isCompleted
+            ? FloatingActionButton.extended(
+                onPressed: _isCompleting ? null : _completePlan,
+                backgroundColor: AppColors.success,
+                icon: _isCompleting
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.emoji_events, color: Colors.white),
+                label: Text(_isCompleting ? 'Đang xử lý...' : 'Hoàn tất Kế hoạch', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              )
+            : (!_hasCheckedInToday
+                ? FloatingActionButton.extended(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.dailyCheckin).then((val) {
+                        if (val == true) _fetchStats();
+                      });
+                    },
+                    backgroundColor: AppColors.warning,
+                    icon: const Icon(Icons.assignment_turned_in, color: Colors.white),
+                    label: const Text('Ghi nhận hôm nay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  )
+                : null)),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue))
+            : TabBarView(
+                children: [
+                  // Tab 1: Tổng quan
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildMainStatCard(context),
+                        const SizedBox(height: 24),
+                        if (_quitPlanInfo != null) ...[
+                          Text(
+                            'Kế hoạch hiện tại',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildPlanInfoCard(context),
+                          const SizedBox(height: 80),
+                        ],
+                      ],
+                    ),
+                  ),
+                  // Tab 2: Hồi phục
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Cột mốc phục hồi cơ thể',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Những thay đổi kỳ diệu của cơ thể khi bạn ngừng hút thuốc (Theo tổ chức Y tế thế giới WHO).',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildMilestonesTimeline(context),
+                        const SizedBox(height: 32),
+                        Text(
+                          'Lợi ích sức khỏe',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildBenefitsGrid(context),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -208,12 +250,12 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
     return Container(
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryBlue.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -246,6 +288,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
                 value: _formatMoney(_moneySaved),
                 color: AppColors.warning,
               ),
+              Container(width: 1, height: 40, color: Colors.white24),
               _buildStatColumn(
                 context,
                 label: 'Số điếu tránh được',
@@ -270,24 +313,17 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         Text(
           value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             color: color,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.white.withValues(alpha: 0.9)),
         ),
       ],
     );
-  }
-
-  String _formatDate(dynamic dateVal) {
-    if (dateVal == null) return '--';
-    final dt = DateTime.tryParse(dateVal.toString());
-    if (dt == null) return '--';
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 
   Widget _buildPlanInfoCard(BuildContext context) {
@@ -305,8 +341,8 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.2), width: 1),
-          boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: const Offset(0, 3))],
+          border: Border.all(color: AppColors.divider.withValues(alpha: 0.5), width: 1),
+          boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: const Offset(0, 3))],
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -314,101 +350,119 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
           children: [
             Row(
               children: [
-                Icon(
-                  type == 'suggested' ? Icons.auto_awesome : Icons.edit_note_rounded,
-                  color: AppColors.primaryBlue,
-                  size: 18,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    type == 'suggested' ? Icons.auto_awesome : Icons.edit_note_rounded,
+                    color: AppColors.primaryBlue,
+                    size: 18,
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     type == 'suggested' ? 'Kế hoạch đề xuất' : 'Kế hoạch tự lập',
                     style: const TextStyle(
-                      color: AppColors.primaryBlue,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
                 ),
                 const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 14),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            // Overall progress bar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Tiến độ tổng thể',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  '${(overallProgress * 100).toStringAsFixed(1)}% • Kết thúc: $overallEnd',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  '${(overallProgress * 100).toStringAsFixed(1)}%',
+                  style: const TextStyle(color: AppColors.primaryBlue, fontSize: 13, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             ClipRRect(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
                 value: overallProgress,
-                minHeight: 8,
-                backgroundColor: AppColors.divider,
+                minHeight: 10,
+                backgroundColor: AppColors.divider.withValues(alpha: 0.5),
                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Dự kiến kết thúc: $overallEnd',
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
 
             if (currentStage != null) ...[
-              const SizedBox(height: 14),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue,
-                      borderRadius: BorderRadius.circular(6),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.divider.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'GĐ ${currentIdx + 1}/$totalStages',
+                        style: const TextStyle(color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
                     ),
-                    child: Text(
-                      'GĐ ${currentIdx + 1}/$totalStages',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentStage['stageName'] ?? '',
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            currentStage['stageName'] ?? '',
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          () {
-                            final cigs = currentStage['cigarettesPerDay'] as int? ?? 0;
-                            return cigs == 0
-                                ? '🎯 Mục tiêu: Hoàn toàn cai thuốc'
-                                : '🎯 Mục tiêu: $cigs điếu/ngày';
-                          }(),
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        ),
-                        Text(
-                          '📅 ${_formatDate(currentStage['startDate'])} → ${_formatDate(currentStage['endDate'])}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            () {
+                              final cigs = currentStage['cigarettesPerDay'] as int? ?? 0;
+                              return cigs == 0
+                                  ? 'Mục tiêu: Hoàn toàn cai thuốc'
+                                  : 'Mục tiêu: $cigs điếu/ngày';
+                            }(),
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${_formatDate(currentStage['startDate'])} → ${_formatDate(currentStage['endDate'])}',
+                            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ],
@@ -417,122 +471,162 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
     );
   }
 
-  Widget _buildMilestonesList(BuildContext context) {
-    // Dynamic milestones based on current streak
+  Widget _buildMilestonesTimeline(BuildContext context) {
     List<Map<String, dynamic>> milestones = [
       {
-        'day': 1,
-        'title': '1 Ngày',
-        'description': 'Huyết áp và nhịp tim ổn định',
+        'day': 1, 
+        'title': 'Sau 20 phút - 12 giờ',
+        'description': 'Nhịp tim và huyết áp giảm dần. Lượng carbon monoxide (CO) trong máu trở về mức bình thường.',
         'icon': Icons.favorite,
       },
       {
-        'day': 7,
-        'title': '1 Tuần',
-        'description': 'Hệ hô hấp bắt đầu phục hồi',
-        'icon': Icons.air,
-      },
-      {
-        'day': 30,
-        'title': '1 Tháng',
-        'description': 'Khứu giác và vị giác cải thiện',
+        'day': 2,
+        'title': 'Sau 2 - 3 ngày',
+        'description': 'Nicotine hoàn toàn được loại bỏ khỏi cơ thể. Khứu giác và vị giác bắt đầu nhạy bén hơn.',
         'icon': Icons.restaurant,
       },
       {
-        'day': 90,
-        'title': '3 Tháng',
-        'description': 'Chức năng phổi tăng 30%',
-        'icon': Icons.local_hospital,
+        'day': 14,
+        'title': 'Sau 2 - 12 tuần',
+        'description': 'Hệ tuần hoàn cải thiện đáng kể, chức năng phổi bắt đầu tăng cường, đi lại dễ dàng hơn.',
+        'icon': Icons.directions_walk,
+      },
+      {
+        'day': 30,
+        'title': 'Sau 1 - 9 tháng',
+        'description': 'Tình trạng ho và khó thở giảm hẳn. Các nhung mao trong phổi bắt đầu hoạt động bình thường trở lại, làm sạch dịch nhầy và chống nhiễm trùng.',
+        'icon': Icons.air,
       },
       {
         'day': 365,
-        'title': '1 Năm',
-        'description': 'Giảm 50% nguy cơ bệnh tim',
+        'title': 'Sau 1 năm',
+        'description': 'Nguy cơ mắc bệnh tim mạch vành giảm đi một nửa so với người tiếp tục hút thuốc.',
         'icon': Icons.health_and_safety,
+      },
+      {
+        'day': 1825,
+        'title': 'Sau 5 năm',
+        'description': 'Nguy cơ bị đột quỵ giảm xuống mức tương đương với người không bao giờ hút thuốc.',
+        'icon': Icons.monitor_heart,
+      },
+      {
+        'day': 3650,
+        'title': 'Sau 10 năm',
+        'description': 'Nguy cơ tử vong do ung thư phổi giảm chỉ còn một nửa so với người vẫn tiếp tục hút.',
+        'icon': Icons.local_hospital,
       },
     ];
 
     return Column(
-      children: milestones.map((milestone) {
+      children: milestones.asMap().entries.map((entry) {
+        int index = entry.key;
+        Map<String, dynamic> milestone = entry.value;
         bool achieved = _streak >= milestone['day'];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildMilestoneCard(context, milestone: milestone, achieved: achieved),
+        bool isLast = index == milestones.length - 1;
+
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: achieved ? AppColors.success.withValues(alpha: 0.15) : AppColors.divider.withValues(alpha: 0.3),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: achieved ? AppColors.success : AppColors.divider,
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(
+                      milestone['icon'],
+                      size: 18,
+                      color: achieved ? AppColors.success : AppColors.textSecondary,
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        color: achieved ? AppColors.success : AppColors.divider,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: achieved ? AppColors.success.withValues(alpha: 0.5) : AppColors.divider.withValues(alpha: 0.5),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                milestone['title'],
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: achieved ? AppColors.success : AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            if (achieved)
+                              const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          milestone['description'],
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       }).toList(),
     );
   }
 
-  Widget _buildMilestoneCard(
-    BuildContext context, {
-    required Map<String, dynamic> milestone,
-    required bool achieved,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: achieved ? AppColors.success : AppColors.divider,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Icon(
-            milestone['icon'],
-            color: achieved ? AppColors.success : AppColors.mediumGrey,
-            size: 28,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  milestone['title'],
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: achieved ? AppColors.textPrimary : AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  milestone['description'],
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (achieved)
-            const Icon(Icons.check_circle, color: AppColors.success, size: 24),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBenefitsGrid(BuildContext context) {
-    List<Map<String, String>> benefits = [
-      {'title': 'Khứu giác', 'icon': '👃'},
-      {'title': 'Vị giác', 'icon': '👅'},
-      {'title': 'Phổi', 'icon': '💨'},
-      {'title': 'Tim', 'icon': '❤️'},
-      {'title': 'Năng lực', 'icon': '⚡'},
-      {'title': 'Da', 'icon': '✨'},
+    List<Map<String, dynamic>> benefits = [
+      {'title': 'Khứu & Vị giác', 'icon': Icons.restaurant, 'desc': 'Ăn ngon miệng hơn'},
+      {'title': 'Phổi & Hô hấp', 'icon': Icons.air, 'desc': 'Thở dễ dàng hơn'},
+      {'title': 'Tim mạch', 'icon': Icons.favorite, 'desc': 'Huyết áp ổn định'},
+      {'title': 'Năng lượng', 'icon': Icons.bolt, 'desc': 'Ít mệt mỏi hơn'},
+      {'title': 'Làn da', 'icon': Icons.face_retouching_natural, 'desc': 'Tươi sáng, trẻ trung'},
+      {'title': 'Tài chính', 'icon': Icons.savings, 'desc': 'Tiết kiệm đáng kể'},
     ];
 
     return GridView.count(
-      crossAxisCount: 3,
+      crossAxisCount: 2,
+      childAspectRatio: 2.2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
@@ -542,7 +636,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider, width: 1),
+            border: Border.all(color: AppColors.divider.withValues(alpha: 0.5), width: 1),
             boxShadow: [
               BoxShadow(
                 color: AppColors.shadow,
@@ -551,18 +645,41 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
               ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
             children: [
-              Text(benefit['icon']!, style: const TextTheme().displaySmall),
-              const SizedBox(height: 8),
-              Text(
-                benefit['title']!,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
+              Icon(
+                benefit['icon'] as IconData,
+                size: 26,
+                color: AppColors.primaryBlue,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      benefit['title'] as String,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      benefit['desc'] as String,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),

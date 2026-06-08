@@ -1,66 +1,91 @@
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
-import '../constants/colors.dart';
 
-class BangXepHangScreen extends StatelessWidget {
+class BangXepHangScreen extends StatefulWidget {
   const BangXepHangScreen({super.key});
+
+  @override
+  State<BangXepHangScreen> createState() => _BangXepHangScreenState();
+}
+
+class _BangXepHangScreenState extends State<BangXepHangScreen> {
+  int _activeTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        title: const Text('Bảng xếp hạng'),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          // Tabs
-          Container(
-            color: AppColors.white,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTab(context, label: 'Tuần này', isActive: true),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTab(
-                    context,
-                    label: 'Tháng này',
-                    isActive: false,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTab(
-                    context,
-                    label: 'Tất cả thời gian',
-                    isActive: false,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: List.generate(10, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildRankCard(
+      backgroundColor: const Color(0xFFFDFDFD),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader(context),
+            _buildTabs(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                child: Column(
+                  children: List.generate(10, (index) {
+                    return _buildRankCard(
                       context,
                       rank: index + 1,
                       name: 'Người dùng ${index + 1}',
                       score: (1000 - index * 50).toString(),
                       isCurrentUser: index == 2,
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 12, 24, 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFFFDFDFD),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(CupertinoIcons.chevron_left, color: Color(0xFF1E293B), size: 20),
+            ),
+          ),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Xếp hạng',
+                  style: TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Top những người truyền cảm hứng',
+                  style: TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -68,29 +93,43 @@ class BangXepHangScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTab(
-    BuildContext context, {
-    required String label,
-    required bool isActive,
-  }) {
+  Widget _buildTabs() {
+    final tabs = ['Tuần này', 'Tháng này', 'Tất cả'];
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: isActive
-            ? AppColors.primaryBlue.withValues(alpha: 0.1)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        border: isActive
-            ? Border.all(color: AppColors.primaryBlue, width: 1.5)
-            : null,
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(30),
       ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: isActive ? AppColors.primaryBlue : AppColors.textSecondary,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-        ),
+      child: Row(
+        children: List.generate(tabs.length, (i) {
+          final isActive = _activeTabIndex == i;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _activeTabIndex = i),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: isActive
+                      ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))]
+                      : [],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  tabs[i],
+                  style: TextStyle(
+                    color: isActive ? const Color(0xFF6B4EFF) : const Color(0xFF64748B),
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -102,45 +141,49 @@ class BangXepHangScreen extends StatelessWidget {
     required String score,
     required bool isCurrentUser,
   }) {
+    final isTop3 = rank <= 3;
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isCurrentUser
-            ? AppColors.primaryBlue.withValues(alpha: 0.1)
-            : AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: isCurrentUser
-            ? Border.all(color: AppColors.primaryBlue, width: 1.5)
-            : Border.all(color: AppColors.divider, width: 1),
+        color: isCurrentUser ? const Color(0xFFF3F0FF) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: isCurrentUser ? Border.all(color: const Color(0xFF6B4EFF).withValues(alpha: 0.3), width: 1.5) : null,
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           // Rank Badge
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: _getRankColor(rank),
-              borderRadius: BorderRadius.circular(8),
+              color: _getRankColor(rank).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
             ),
-            child: Center(
-              child: Text(
-                '#$rank',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
+            alignment: Alignment.center,
+            child: isTop3
+                ? Icon(
+                    rank == 1 ? CupertinoIcons.star_fill : (rank == 2 ? CupertinoIcons.star_circle_fill : CupertinoIcons.star),
+                    color: _getRankColor(rank),
+                    size: 22,
+                  )
+                : Text(
+                    '#$rank',
+                    style: TextStyle(
+                      color: _getRankColor(rank),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
 
           // User Info
           Expanded(
@@ -149,32 +192,36 @@ class BangXepHangScreen extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: isCurrentUser ? const Color(0xFF6B4EFF) : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Điểm: $score',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
 
-          // Medal Icon for top 3
-          if (rank <= 3)
-            Icon(
-              rank == 1
-                  ? Icons.emoji_events
-                  : rank == 2
-                  ? Icons.military_tech
-                  : Icons.leaderboard,
-              color: _getRankColor(rank),
-              size: 24,
+          if (isCurrentUser)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6B4EFF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Bạn',
+                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
             ),
         ],
       ),
@@ -182,9 +229,9 @@ class BangXepHangScreen extends StatelessWidget {
   }
 
   Color _getRankColor(int rank) {
-    if (rank == 1) return const Color(0xFFFFD700); // Gold
-    if (rank == 2) return const Color(0xFFC0C0C0); // Silver
-    if (rank == 3) return const Color(0xFFCD7F32); // Bronze
-    return AppColors.primaryBlue;
+    if (rank == 1) return const Color(0xFFF59E0B); // Gold/Amber
+    if (rank == 2) return const Color(0xFF94A3B8); // Silver/Slate
+    if (rank == 3) return const Color(0xFFD97706); // Bronze/Dark Amber
+    return const Color(0xFF64748B); // Normal
   }
 }

@@ -1,6 +1,6 @@
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../constants/colors.dart';
 import '../services/auth_provider.dart';
 import '../routes/app_routes.dart';
 
@@ -74,6 +74,7 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
   }
   
   Future<void> _selectDate(BuildContext context) async {
+    if (_isViewOnly) return;
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedQuitDate ?? DateTime.now(),
@@ -83,9 +84,9 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryBlue,
-              onPrimary: AppColors.white,
-              onSurface: AppColors.black,
+              primary: Color(0xFF6B4EFF),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF1E293B),
             ),
           ),
           child: child!,
@@ -103,9 +104,7 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
@@ -124,165 +123,160 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
       smokingProfile: smokingProfile,
     );
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thông tin thành công'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.planSelection);
-      }
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thông tin thành công'), backgroundColor: Color(0xFF10B981)));
+      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.planSelection);
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Có lỗi xảy ra'),
-          backgroundColor: AppColors.danger,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authProvider.errorMessage ?? 'Có lỗi xảy ra'), backgroundColor: const Color(0xFFF43F5E)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Tình trạng hút thuốc'),
-        backgroundColor: AppColors.primaryBlue,
-        elevation: 0,
+      backgroundColor: const Color(0xFFFDFDFD),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildMainCard(),
+                      if (!_isViewOnly) ...[
+                        const SizedBox(height: 40),
+                        _buildSaveButton(),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Thông tin hiện tại',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final canPop = Navigator.canPop(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 12, 24, 16),
+      decoration: const BoxDecoration(color: Color(0xFFFDFDFD)),
+      child: Row(
+        children: [
+          if (canPop)
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+                child: const Icon(CupertinoIcons.chevron_left, color: Color(0xFF1E293B), size: 20),
+              ),
+            )
+          else
+            const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tình trạng hút thuốc',
+                  style: TextStyle(color: Color(0xFF1E293B), fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Cập nhật thông tin để ứng dụng có thể theo dõi và tính toán tiền tiết kiệm cho bạn.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 32),
-              
-              _buildInputField(
-                label: 'Số lượng điếu thuốc mỗi ngày',
-                controller: _cigarettesPerDayController,
-                keyboardType: TextInputType.number,
-                icon: Icons.smoking_rooms,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập số lượng';
-                  }
-                  final number = int.tryParse(value);
-                  if (number == null) return 'Vui lòng nhập số hợp lệ';
-                  if (number < 0) return 'Số lượng không được âm';
-                  if (number > 100) return 'Số lượng tối đa là 100 điếu/ngày';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              
-              _buildInputField(
-                label: 'Số năm hút thuốc',
-                controller: _smokingYearsController,
-                keyboardType: TextInputType.number,
-                icon: Icons.calendar_today,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập số năm';
-                  }
-                  final number = int.tryParse(value);
-                  if (number == null) return 'Vui lòng nhập số hợp lệ';
-                  if (number < 0) return 'Số năm không được âm';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              
-              _buildDropdownField(
-                label: 'Mức độ thèm thuốc buổi sáng',
-                value: _morningCravingLevel,
-                items: ["Thấp", "Trung bình", "Cao"],
-                icon: Icons.wb_sunny,
-                onChanged: (val) {
-                  if (val != null) setState(() => _morningCravingLevel = val);
-                },
-              ),
-              const SizedBox(height: 20),
-              
-              _buildDropdownField(
-                label: 'Lý do chính muốn cai thuốc',
-                value: _quitReason,
-                items: ["Sức khỏe", "Tài chính", "Gia đình", "Khác"],
-                icon: Icons.favorite,
-                onChanged: (val) {
-                  if (val != null) setState(() => _quitReason = val);
-                },
-              ),
-              const SizedBox(height: 20),
-              
-              GestureDetector(
-                onTap: _isViewOnly ? null : () => _selectDate(context),
-                child: AbsorbPointer(
-                  child: _buildInputField(
-                    label: 'Ngày bắt đầu cai thuốc',
-                    controller: _quitDateController,
-                    icon: Icons.event,
-                  ),
-                ),
-              ),
-              
-              if (!_isViewOnly) ...[
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveChanges,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Lưu thông tin',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
+                SizedBox(height: 4),
+                Text(
+                  'Giúp chúng tôi cá nhân hóa kế hoạch',
+                  style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInputField(
+            label: 'Số điếu mỗi ngày',
+            controller: _cigarettesPerDayController,
+            icon: CupertinoIcons.flame,
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Vui lòng nhập số lượng';
+              final number = int.tryParse(value);
+              if (number == null) return 'Vui lòng nhập số hợp lệ';
+              if (number < 0) return 'Số lượng không được âm';
+              if (number > 100) return 'Tối đa 100 điếu/ngày';
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+          _buildInputField(
+            label: 'Số năm hút thuốc',
+            controller: _smokingYearsController,
+            icon: CupertinoIcons.calendar,
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Vui lòng nhập số năm';
+              final number = int.tryParse(value);
+              if (number == null) return 'Vui lòng nhập số hợp lệ';
+              if (number < 0) return 'Số năm không được âm';
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+          _buildDropdownField(
+            label: 'Mức độ thèm thuốc buổi sáng',
+            value: _morningCravingLevel,
+            items: ["Thấp", "Trung bình", "Cao"],
+            icon: CupertinoIcons.sun_max,
+            onChanged: (val) {
+              if (val != null) setState(() => _morningCravingLevel = val);
+            },
+          ),
+          const SizedBox(height: 24),
+          _buildDropdownField(
+            label: 'Lý do muốn cai thuốc',
+            value: _quitReason,
+            items: ["Sức khỏe", "Tài chính", "Gia đình", "Khác"],
+            icon: CupertinoIcons.heart,
+            onChanged: (val) {
+              if (val != null) setState(() => _quitReason = val);
+            },
+          ),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: () => _selectDate(context),
+            child: AbsorbPointer(
+              child: _buildInputField(
+                label: 'Ngày bắt đầu cai',
+                controller: _quitDateController,
+                icon: CupertinoIcons.flag,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -297,38 +291,25 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1E293B), fontSize: 14)),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          validator: validator,
-          readOnly: _isViewOnly,
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: AppColors.textSecondary),
-            filled: true,
-            fillColor: AppColors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outline),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outline),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.danger),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            validator: validator,
+            readOnly: _isViewOnly,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              errorStyle: const TextStyle(color: Color(0xFFF43F5E), fontWeight: FontWeight.w500),
             ),
           ),
         ),
@@ -346,42 +327,52 @@ class _SmokingStatusScreenState extends State<SmokingStatusScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1E293B), fontSize: 14)),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: value,
-          onChanged: _isViewOnly ? null : onChanged,
-          items: items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item),
-            );
-          }).toList(),
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: AppColors.textSecondary),
-            filled: true,
-            fillColor: AppColors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outline),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: DropdownButtonFormField<String>(
+            value: value,
+            onChanged: _isViewOnly ? null : onChanged,
+            items: items.map((item) => DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontWeight: FontWeight.w600)))).toList(),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.outline),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
-            ),
+            dropdownColor: Colors.white,
+            icon: const Icon(CupertinoIcons.chevron_down, color: Color(0xFF94A3B8), size: 18),
+            style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w600, fontFamily: 'sans-serif'),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: const Color(0xFF6B4EFF).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))],
+      ),
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _saveChanges,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6B4EFF),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 0,
+        ),
+        child: _isLoading
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Text('Lưu thông tin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      ),
     );
   }
 }

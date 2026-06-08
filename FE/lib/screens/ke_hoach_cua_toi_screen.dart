@@ -92,10 +92,12 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryBlue))

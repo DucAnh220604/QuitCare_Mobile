@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:provider/provider.dart';
-import '../../constants/colors.dart';
 import '../../services/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -29,36 +29,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   String? _validateFullname(String? value) {
-    if (value == null || value.isEmpty) return 'Full name is required';
-    if (value.length > 50) return 'Full name cannot exceed 50 characters';
+    if (value == null || value.isEmpty) return 'Vui lòng nhập họ tên';
+    if (value.length > 50) return 'Họ tên không quá 50 ký tự';
     return null;
   }
 
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) return 'Email is required';
-    if (!RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    ).hasMatch(value)) {
-      return 'Please enter a valid email';
+    if (value == null || value.isEmpty) return 'Vui lòng nhập email';
+    if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
+      return 'Email không hợp lệ';
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Password is required';
-    if (value.length < 8) return 'Password must be at least 8 characters';
+    if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
+    if (value.length < 6) return 'Mật khẩu phải từ 6 ký tự';
     return null;
   }
 
   String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) return 'Phone number is required';
+    if (value == null || value.isEmpty) return 'Vui lòng nhập số điện thoại';
     return null;
   }
 
   void _handleRegister(AuthProvider authProvider) async {
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please agree to terms and conditions')),
+        const SnackBar(
+          content: Text('Vui lòng đồng ý với điều khoản dịch vụ'),
+          backgroundColor: Color(0xFFF43F5E),
+        ),
       );
       return;
     }
@@ -76,8 +77,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Registration failed'),
-            backgroundColor: AppColors.danger,
+            content: Text(authProvider.errorMessage ?? 'Đăng ký thất bại'),
+            backgroundColor: const Color(0xFFF43F5E),
           ),
         );
       }
@@ -87,35 +88,161 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+      backgroundColor: const Color(0xFFFDFDFD),
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/register_header_landscape.png'),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          // Gradient Fade to blend image with background
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFFFDFDFD).withValues(alpha: 0.0),
+                    const Color(0xFFFDFDFD).withValues(alpha: 0.8),
+                    const Color(0xFFFDFDFD),
+                  ],
+                  stops: const [0.1, 0.4, 0.6],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    // Back button
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+                        child: const Icon(CupertinoIcons.chevron_left, color: Color(0xFF1E293B), size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // Header
+                    const Text(
                       'Đăng Ký',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      style: TextStyle(
                         fontSize: 32,
-                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1E293B),
+                        letterSpacing: -1,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       'Bắt đầu hành trình bỏ thuốc của bạn',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 40),
-                    _buildForm(),
+
+                    // Form
+                    Form(
+                      key: _formKey,
+                      child: Consumer<AuthProvider>(
+                        builder: (context, authProvider, _) => Column(
+                          children: [
+                            _buildInputField(
+                              controller: _fullnameController,
+                              label: 'Họ và Tên',
+                              icon: CupertinoIcons.person,
+                              validator: _validateFullname,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildInputField(
+                              controller: _emailController,
+                              label: 'Email',
+                              icon: CupertinoIcons.mail,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: _validateEmail,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildInputField(
+                              controller: _phoneController,
+                              label: 'Số Điện Thoại',
+                              icon: CupertinoIcons.phone,
+                              keyboardType: TextInputType.phone,
+                              validator: _validatePhone,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildInputField(
+                              controller: _passwordController,
+                              label: 'Mật khẩu',
+                              icon: CupertinoIcons.lock,
+                              obscureText: _obscurePassword,
+                              validator: _validatePassword,
+                              suffixIcon: GestureDetector(
+                                onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+                                child: Icon(
+                                  _obscurePassword ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                                  color: const Color(0xFF94A3B8),
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildTermsCheckbox(),
+                            const SizedBox(height: 32),
+                            _buildRegisterButton(authProvider),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 32),
-                    _buildLoginLink(),
+
+                    // Login Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Đã có tài khoản? ',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.pushReplacementNamed(context, '/login'),
+                          child: const Text(
+                            'Đăng Nhập',
+                            style: TextStyle(
+                              color: Color(0xFF6B4EFF),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -123,130 +250,88 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildForm() {
-    return Form(
-      key: _formKey,
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) => Column(
-          children: [
-            _buildTextField(
-              controller: _fullnameController,
-              label: 'Họ và Tên',
-              hint: 'Nhập họ và tên',
-              icon: Icons.person_outlined,
-              validator: _validateFullname,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _emailController,
-              label: 'Email',
-              hint: 'Nhập email',
-              icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              validator: _validateEmail,
-            ),
-            const SizedBox(height: 16),
-            _buildTextField(
-              controller: _phoneController,
-              label: 'Số Điện Thoại',
-              hint: 'Nhập số điện thoại',
-              icon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              validator: _validatePhone,
-            ),
-            const SizedBox(height: 16),
-            _buildPasswordField(),
-            const SizedBox(height: 20),
-            _buildTermsCheckbox(),
-            const SizedBox(height: 24),
-            _buildRegisterButton(authProvider),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildInputField({
     required TextEditingController controller,
     required String label,
-    required String hint,
     required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    Widget? suffixIcon,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: AppColors.textSecondary),
-        hintText: hint,
-        prefixIcon: Icon(icon),
-        prefixIconColor: AppColors.primaryBlue,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.divider),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passwordController,
-      validator: _validatePassword,
-      obscureText: _obscurePassword,
-      decoration: InputDecoration(
-        labelText: 'Mật khẩu',
-        labelStyle: TextStyle(color: AppColors.textSecondary),
-        hintText: 'Nhập mật khẩu (tối thiểu 8 ký tự)',
-        prefixIcon: const Icon(Icons.lock_outlined),
-        prefixIconColor: AppColors.primaryBlue,
-        suffixIcon: GestureDetector(
-          onTap: () => setState(() => _obscurePassword = !_obscurePassword),
-          child: Icon(
-            _obscurePassword
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            color: AppColors.textSecondary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1E293B),
+            fontSize: 14,
           ),
         ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.divider),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            obscureText: obscureText,
+            validator: validator,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E293B),
+            ),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: const Color(0xFF94A3B8), size: 20),
+              suffixIcon: suffixIcon,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              errorStyle: const TextStyle(
+                color: Color(0xFFF43F5E),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
-        ),
-      ),
+      ],
     );
   }
 
   Widget _buildTermsCheckbox() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Checkbox(
-          value: _agreeToTerms,
-          onChanged: (value) => setState(() => _agreeToTerms = value ?? false),
-          activeColor: AppColors.primaryBlue,
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: _agreeToTerms,
+            onChanged: (value) => setState(() => _agreeToTerms = value ?? false),
+            activeColor: const Color(0xFF6B4EFF),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+          ),
         ),
-        Expanded(
+        const SizedBox(width: 12),
+        const Expanded(
           child: Text(
-            'Tôi đồng ý với điều khoản dịch vụ',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+            'Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật',
+            style: TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+            ),
           ),
         ),
       ],
@@ -254,62 +339,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildRegisterButton(AuthProvider authProvider) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: authProvider.isLoading
-            ? null
-            : () => _handleRegister(authProvider),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue,
-          disabledBackgroundColor: AppColors.primaryBlue.withValues(alpha: 0.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6B4EFF).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: authProvider.isLoading ? null : () => _handleRegister(authProvider),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6B4EFF),
+          disabledBackgroundColor: const Color(0xFF6B4EFF).withValues(alpha: 0.5),
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 0,
         ),
         child: authProvider.isLoading
             ? const SizedBox(
-                height: 20,
-                width: 20,
+                height: 24,
+                width: 24,
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(AppColors.white),
+                  color: Colors.white,
                   strokeWidth: 2,
                 ),
               )
-            : Text(
+            : const Text(
                 'Đăng Ký',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w700,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
       ),
-    );
-  }
-
-  Widget _buildLoginLink() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          'Đã có tài khoản?',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/login'),
-          child: Text(
-            'Đăng Nhập',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.primaryBlue,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -6,7 +6,8 @@
       "Bash(dart --version)",
       "Bash(where flutter *)",
       "Bash(grep -l \"flame\\\\|nosign\" \"D:/src/flutter/packages/flutter/lib/src/cupertino/icons.dart\" 2>&1 | head -3)",
-      "Read(//d/src/flutter/packages/flutter/lib/src/cupertino/**)"
+      "Read(//d/src/flutter/packages/flutter/lib/src/cupertino/**)",
+      "Bash(xargs grep -l \"community\\\\|cong.dong\\\\|post\\\\|comment\\\\|like\")"
     ]
   }
 }
