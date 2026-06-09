@@ -36,7 +36,7 @@ class MembershipProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -64,7 +64,7 @@ class MembershipProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -92,7 +92,7 @@ class MembershipProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;

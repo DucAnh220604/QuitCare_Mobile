@@ -18,7 +18,7 @@ export const bookAppointment = async (req, res) => {
     const end = new Date(start.getTime() + 45 * 60000);
 
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
 
     if (user.membership?.type !== "199k") {
       return res.status(403).json({ success: false, message: "Tính năng này chỉ dành cho tài khoản VIP" });

@@ -56,7 +56,7 @@ export const getProgressStats = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("smokingProfile.currentPlan");
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
     }
     const profile = user.smokingProfile;
 

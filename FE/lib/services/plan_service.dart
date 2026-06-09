@@ -19,7 +19,7 @@ class PlanService {
       final token = await storage.read(key: tokenKey);
 
       if (token == null) {
-        return {'success': false, 'message': 'No token found'};
+        return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       }
 
       final response = await http.get(
@@ -36,17 +36,17 @@ class PlanService {
           'otherOptions': data['data']['otherOptions']
         };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Failed to fetch recommended plan'};
+        return {'success': false, 'message': data['message'] ?? 'Không thể tải gợi ý kế hoạch'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
   Future<Map<String, dynamic>> selectPlan(String planId) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.post(
         Uri.parse('$baseUrl/select'),
@@ -67,7 +67,7 @@ class PlanService {
   Future<Map<String, dynamic>> getMyPlan() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.get(
         Uri.parse('$baseUrl/my-plan'),
@@ -77,7 +77,7 @@ class PlanService {
       final data = jsonDecode(response.body);
       return data;
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -86,7 +86,7 @@ class PlanService {
   Future<Map<String, dynamic>> generateSuggestedPlan() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.get(
         Uri.parse('$quitPlanBase/generate'),
@@ -96,14 +96,14 @@ class PlanService {
       final data = jsonDecode(response.body);
       return data;
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
   Future<Map<String, dynamic>> confirmPlan(Map<String, dynamic> planData) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.post(
         Uri.parse('$quitPlanBase/confirm'),
@@ -117,14 +117,14 @@ class PlanService {
       final data = jsonDecode(response.body);
       return data;
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
   Future<Map<String, dynamic>> getCurrentQuitPlan() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.get(
         Uri.parse('$quitPlanBase/current'),
@@ -134,7 +134,7 @@ class PlanService {
       final data = jsonDecode(response.body);
       return data;
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 }

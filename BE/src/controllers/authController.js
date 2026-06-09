@@ -14,7 +14,7 @@ const register = async (req, res) => {
     if (user) {
       return res.status(400).json({
         success: false,
-        message: "User already exists with this email",
+        message: "Email này đã được đăng ký",
       });
     }
 
@@ -34,7 +34,7 @@ const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "Đăng ký tài khoản thành công",
       data: {
         token,
         user: {
@@ -67,7 +67,7 @@ const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Please provide email and password",
+        message: "Vui lòng nhập email và mật khẩu",
       });
     }
 
@@ -77,7 +77,7 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Email hoặc mật khẩu không đúng",
       });
     }
 
@@ -87,7 +87,7 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Email hoặc mật khẩu không đúng",
       });
     }
 
@@ -99,7 +99,7 @@ const login = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Login successful",
+      message: "Đăng nhập thành công",
       data: {
         token,
         user: {
@@ -173,7 +173,7 @@ const updateProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Profile updated successfully",
+      message: "Cập nhật thông tin thành công",
       data: {
         _id: user._id,
         fullname: user.fullname,
@@ -198,7 +198,7 @@ const updateProfile = async (req, res) => {
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "No image file provided" });
+      return res.status(400).json({ success: false, message: "Vui lòng chọn ảnh để tải lên" });
     }
 
     const uploadResult = await new Promise((resolve, reject) => {
@@ -225,7 +225,7 @@ const uploadAvatar = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Avatar uploaded successfully",
+      message: "Cập nhật ảnh đại diện thành công",
       data: { avatar: user.avatar },
     });
   } catch (error) {
@@ -233,4 +233,35 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-export { register, login, getProfile, updateProfile, uploadAvatar };
+// @desc    Change user password
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: "Mật khẩu mới phải có ít nhất 8 ký tự" });
+    }
+
+    const user = await User.findById(req.user.id).select("+password");
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Mật khẩu hiện tại không đúng" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Đổi mật khẩu thành công" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export { register, login, getProfile, updateProfile, uploadAvatar, changePassword };

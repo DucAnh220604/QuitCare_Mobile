@@ -48,11 +48,11 @@ class AuthService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Registration failed',
+          'message': data['message'] ?? 'Đăng ký thất bại',
         };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -79,10 +79,10 @@ class AuthService {
           'user': data['data']['user'],
         };
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Login failed'};
+        return {'success': false, 'message': data['message'] ?? 'Đăng nhập thất bại'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -92,7 +92,7 @@ class AuthService {
       final token = await storage.read(key: tokenKey);
 
       if (token == null) {
-        return {'success': false, 'message': 'No token found'};
+        return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       }
 
       final response = await http.get(
@@ -105,10 +105,10 @@ class AuthService {
       if (response.statusCode == 200 && data['success']) {
         return {'success': true, 'user': data['data']};
       } else {
-        return {'success': false, 'message': 'Failed to fetch profile'};
+        return {'success': false, 'message': 'Không thể tải thông tin tài khoản'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -122,7 +122,7 @@ class AuthService {
       final token = await storage.read(key: tokenKey);
 
       if (token == null) {
-        return {'success': false, 'message': 'No token found'};
+        return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       }
 
       final response = await http.put(
@@ -149,11 +149,11 @@ class AuthService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Failed to update profile',
+          'message': data['message'] ?? 'Cập nhật thông tin thất bại',
         };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -162,7 +162,7 @@ class AuthService {
     try {
       final token = await storage.read(key: tokenKey);
       if (token == null) {
-        return {'success': false, 'message': 'No token found'};
+        return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       }
 
       final bytes = await imageFile.readAsBytes();
@@ -191,10 +191,35 @@ class AuthService {
       if (response.statusCode == 200 && data['success']) {
         return {'success': true, 'avatar': data['data']['avatar']};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Upload failed'};
+        return {'success': false, 'message': data['message'] ?? 'Tải ảnh lên thất bại'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
+    }
+  }
+
+  /// Change user password
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final token = await storage.read(key: tokenKey);
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/change-password'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'currentPassword': currentPassword, 'newPassword': newPassword}),
+      );
+
+      final data = jsonDecode(response.body);
+      return {'success': data['success'] ?? false, 'message': data['message']};
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 

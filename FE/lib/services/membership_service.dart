@@ -33,10 +33,10 @@ class MembershipService {
           'packages': data['data'],
         };
       } else {
-        return {'success': false, 'message': 'Failed to fetch packages'};
+        return {'success': false, 'message': 'Không thể tải danh sách gói'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -46,7 +46,7 @@ class MembershipService {
       final token = await storage.read(key: tokenKey);
 
       if (token == null) {
-        return {'success': false, 'message': 'No token found'};
+        return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       }
 
       final response = await http.post(
@@ -72,11 +72,11 @@ class MembershipService {
       } else {
         return {
           'success': false,
-          'message': data['message'] ?? 'Failed to register membership',
+          'message': data['message'] ?? 'Đăng ký gói thành viên thất bại',
         };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 
@@ -86,7 +86,7 @@ class MembershipService {
       final token = await storage.read(key: tokenKey);
 
       if (token == null) {
-        return {'success': false, 'message': 'No token found'};
+        return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       }
 
       final response = await http.get(
@@ -105,10 +105,10 @@ class MembershipService {
           'membership': data['data'],
         };
       } else {
-        return {'success': false, 'message': 'Failed to fetch membership'};
+        return {'success': false, 'message': 'Không thể tải thông tin gói thành viên'};
       }
     } catch (e) {
-      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+      return {'success': false, 'message': 'Lỗi kết nối, vui lòng kiểm tra mạng'};
     }
   }
 }

@@ -50,7 +50,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -79,7 +79,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -116,7 +116,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -152,7 +152,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -178,6 +178,32 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Change password
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+      _isLoading = false;
+      if (!result['success']) _errorMessage = result['message'];
+      notifyListeners();
+      return result['success'] as bool;
+    } catch (e) {
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Upload user avatar
   Future<bool> uploadAvatar(XFile imageFile) async {
     _isLoading = true;
@@ -199,7 +225,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: ${e.toString()}';
+      _errorMessage = 'Đã xảy ra lỗi, vui lòng thử lại';
       _isLoading = false;
       notifyListeners();
       return false;

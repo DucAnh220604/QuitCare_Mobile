@@ -108,7 +108,7 @@ export const selectPlan = async (req, res) => {
 
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
     }
 
     // Verify if plan exists

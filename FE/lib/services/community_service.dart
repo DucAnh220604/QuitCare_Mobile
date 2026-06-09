@@ -17,7 +17,7 @@ class CommunityService {
   Future<Map<String, dynamic>> getPosts({int page = 1, int limit = 10}) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.get(
         Uri.parse('$baseUrl/posts?page=$page&limit=$limit'),
         headers: {'Authorization': 'Bearer $token'},
@@ -31,7 +31,7 @@ class CommunityService {
   Future<Map<String, dynamic>> createPost(String content) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.post(
         Uri.parse('$baseUrl/posts'),
         headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
@@ -46,7 +46,7 @@ class CommunityService {
   Future<Map<String, dynamic>> toggleLike(String postId) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/like'),
         headers: {'Authorization': 'Bearer $token'},
@@ -60,7 +60,7 @@ class CommunityService {
   Future<Map<String, dynamic>> deletePost(String postId) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.delete(
         Uri.parse('$baseUrl/posts/$postId'),
         headers: {'Authorization': 'Bearer $token'},
@@ -74,7 +74,7 @@ class CommunityService {
   Future<Map<String, dynamic>> getComments(String postId) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.get(
         Uri.parse('$baseUrl/posts/$postId/comments'),
         headers: {'Authorization': 'Bearer $token'},
@@ -88,7 +88,7 @@ class CommunityService {
   Future<Map<String, dynamic>> addComment(String postId, String content) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/comments'),
         headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
@@ -103,7 +103,7 @@ class CommunityService {
   Future<Map<String, dynamic>> deleteComment(String commentId) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
       final response = await http.delete(
         Uri.parse('$baseUrl/comments/$commentId'),
         headers: {'Authorization': 'Bearer $token'},

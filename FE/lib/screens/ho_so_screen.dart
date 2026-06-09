@@ -19,7 +19,8 @@ class HoSoScreen extends StatelessWidget {
   bool _hasPlan(Map<String, dynamic>? user) {
     final profile = user?['smokingProfile'];
     if (profile == null) return false;
-    return profile['currentPlan'] != null || profile['activeQuitPlanId'] != null;
+    return profile['currentPlan'] != null ||
+        profile['activeQuitPlanId'] != null;
   }
 
   bool _hasPastPlans(Map<String, dynamic>? user) {
@@ -48,13 +49,15 @@ class HoSoScreen extends StatelessWidget {
               decoration: const BoxDecoration(
                 color: Color(0xFFE8E2FA),
                 image: DecorationImage(
-                  image: AssetImage('assets/images/profile_header_landscape.png'),
+                  image: AssetImage(
+                    'assets/images/profile_header_landscape.png',
+                  ),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
           ),
-          
+
           SafeArea(
             bottom: false,
             child: SingleChildScrollView(
@@ -106,7 +109,11 @@ class HoSoScreen extends StatelessWidget {
                       color: Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(CupertinoIcons.chevron_left, color: Color(0xFF1E293B), size: 20),
+                    child: const Icon(
+                      CupertinoIcons.chevron_left,
+                      color: Color(0xFF1E293B),
+                      size: 20,
+                    ),
                   ),
                 )
               else
@@ -135,7 +142,11 @@ class HoSoScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 3),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
                 ),
                 child: ClipOval(
@@ -146,14 +157,22 @@ class HoSoScreen extends StatelessWidget {
                           errorBuilder: (ctx, err, st) => Center(
                             child: Text(
                               _getInitials(user['fullname']),
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF6B4EFF)),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF6B4EFF),
+                              ),
                             ),
                           ),
                         )
                       : Center(
                           child: Text(
                             _getInitials(user?['fullname']),
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF6B4EFF)),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF6B4EFF),
+                            ),
                           ),
                         ),
                 ),
@@ -198,7 +217,11 @@ class HoSoScreen extends StatelessWidget {
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
-  Widget _buildSurveyCard(BuildContext context, Map<String, dynamic>? user, bool isViewOnly) {
+  Widget _buildSurveyCard(
+    BuildContext context,
+    Map<String, dynamic>? user,
+    bool isViewOnly,
+  ) {
     final profile = user?['smokingProfile'] ?? {};
     final cigs = profile['cigarettesPerDay'] ?? 0;
     final years = profile['smokingYears'] ?? 0;
@@ -227,7 +250,11 @@ class HoSoScreen extends StatelessWidget {
                   color: const Color(0xFFFFF1F2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(CupertinoIcons.heart_solid, color: Color(0xFFF43F5E), size: 18),
+                child: const Icon(
+                  CupertinoIcons.heart_solid,
+                  color: Color(0xFFF43F5E),
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -241,30 +268,57 @@ class HoSoScreen extends StatelessWidget {
               const Spacer(),
               if (!isViewOnly)
                 GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.smokingStatus),
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.smokingStatus),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text('Cập nhật', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Text(
+                      'Cập nhật',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
-                )
+                ),
             ],
           ),
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _surveyMetricCard('Số điếu/ngày', '$cigs', CupertinoIcons.flame)),
+              Expanded(
+                child: _surveyMetricCard(
+                  'Số điếu/ngày',
+                  '$cigs',
+                  CupertinoIcons.flame,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _surveyMetricCard('Số năm', '$years', CupertinoIcons.calendar)),
+              Expanded(
+                child: _surveyMetricCard(
+                  'Số năm',
+                  '$years',
+                  CupertinoIcons.calendar,
+                ),
+              ),
             ],
           ),
           if (isViewOnly) ...[
             const SizedBox(height: 16),
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.smokingStatus, arguments: {'isViewOnly': true}),
+              onTap: () => Navigator.pushNamed(
+                context,
+                AppRoutes.smokingStatus,
+                arguments: {'isViewOnly': true},
+              ),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -273,10 +327,17 @@ class HoSoScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: const Text('Xem chi tiết khảo sát', style: TextStyle(color: Color(0xFF6B4EFF), fontWeight: FontWeight.bold, fontSize: 13)),
+                child: const Text(
+                  'Xem chi tiết khảo sát',
+                  style: TextStyle(
+                    color: Color(0xFF6B4EFF),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -294,9 +355,23 @@ class HoSoScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: const Color(0xFF94A3B8)),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -308,14 +383,25 @@ class HoSoScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Cài đặt & Tiện ích', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+          const Text(
+            'Cài đặt & Tiện ích',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
               ],
             ),
             child: Column(
@@ -323,33 +409,56 @@ class HoSoScreen extends StatelessWidget {
                 if (hasPlan)
                   _buildMenuItem(
                     context,
-                    icon: CupertinoIcons.doc_text,
-                    title: 'Kế hoạch của tôi',
-                    subtitle: 'Xem tiến trình kế hoạch',
-                    onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
+                    icon: CupertinoIcons.person_crop_circle,
+                    title: 'Thông tin cá nhân',
+                    subtitle: 'Đổi tên, số điện thoại',
+                    showBorder: false,
+                    onTap: () async {
+                      final ap = Provider.of<AuthProvider>(
+                        context,
+                        listen: false,
+                      );
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) =>
+                            const Center(child: CircularProgressIndicator()),
+                      );
+                      final success = await ap.fetchProfile();
+                      if (context.mounted) Navigator.pop(context);
+                      if (success && context.mounted) {
+                        Navigator.pushNamed(context, AppRoutes.profileDetail);
+                      }
+                    },
                   ),
+                _buildMenuItem(
+                  context,
+                  icon: CupertinoIcons.doc_text,
+                  title: 'Kế hoạch của tôi',
+                  subtitle: 'Xem tiến trình kế hoạch',
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
+                ),
+
                 _buildMenuItem(
                   context,
                   icon: CupertinoIcons.calendar_badge_plus,
                   title: 'Lịch hẹn Bác sĩ',
                   subtitle: 'Tư vấn trực tuyến qua Google Meet',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyAppointmentsScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MyAppointmentsScreen(),
+                    ),
+                  ),
                 ),
                 _buildMenuItem(
                   context,
-                  icon: CupertinoIcons.person_crop_circle,
-                  title: 'Thông tin cá nhân',
-                  subtitle: 'Đổi tên, mật khẩu',
-                  showBorder: false,
-                  onTap: () async {
-                    final ap = Provider.of<AuthProvider>(context, listen: false);
-                    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
-                    final success = await ap.fetchProfile();
-                    if (context.mounted) Navigator.pop(context);
-                    if (success && context.mounted) {
-                      Navigator.pushNamed(context, AppRoutes.profileDetail);
-                    }
-                  },
+                  icon: CupertinoIcons.lock_rotation,
+                  title: 'Đổi mật khẩu',
+                  subtitle: 'Cập nhật mật khẩu tài khoản',
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.changePassword),
                 ),
               ],
             ),
@@ -365,14 +474,25 @@ class HoSoScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Về ứng dụng', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+          const Text(
+            'Về ứng dụng',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
               ],
             ),
             child: Column(
@@ -382,20 +502,33 @@ class HoSoScreen extends StatelessWidget {
                   icon: CupertinoIcons.info_circle,
                   title: 'Về QuitCare',
                   subtitle: 'Phiên bản 1.0.0',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutQuitCareScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AboutQuitCareScreen(),
+                    ),
+                  ),
                 ),
                 _buildMenuItem(
                   context,
                   icon: CupertinoIcons.doc_plaintext,
                   title: 'Điều khoản sử dụng',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfUseScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TermsOfUseScreen()),
+                  ),
                 ),
                 _buildMenuItem(
                   context,
                   icon: CupertinoIcons.shield,
                   title: 'Chính sách bảo mật',
                   showBorder: false,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PrivacyPolicyScreen(),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -411,14 +544,25 @@ class HoSoScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Hoạt động', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+          const Text(
+            'Hoạt động',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
               ],
             ),
             child: _buildMenuItem(
@@ -440,10 +584,17 @@ class HoSoScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: GestureDetector(
         onTap: () async {
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          final authProvider = Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          );
           await authProvider.logout();
           if (context.mounted) {
-            Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/login',
+              (route) => false,
+            );
           }
         },
         child: Container(
@@ -480,7 +631,11 @@ class HoSoScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          border: showBorder ? const Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)) : null,
+          border: showBorder
+              ? const Border(
+                  bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
+                )
+              : null,
         ),
         child: Row(
           children: [
@@ -515,11 +670,15 @@ class HoSoScreen extends StatelessWidget {
                         color: Color(0xFF94A3B8),
                       ),
                     ),
-                  ]
+                  ],
                 ],
               ),
             ),
-            const Icon(CupertinoIcons.chevron_right, color: Color(0xFFCBD5E1), size: 16),
+            const Icon(
+              CupertinoIcons.chevron_right,
+              color: Color(0xFFCBD5E1),
+              size: 16,
+            ),
           ],
         ),
       ),

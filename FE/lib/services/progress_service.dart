@@ -18,7 +18,7 @@ class ProgressService {
   }) async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.post(
         Uri.parse('$baseUrl/checkin'),
@@ -46,7 +46,7 @@ class ProgressService {
   Future<Map<String, dynamic>> getProgressStats() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.get(
         Uri.parse('$baseUrl/stats'),
@@ -63,7 +63,7 @@ class ProgressService {
   Future<Map<String, dynamic>> getHistory() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.get(
         Uri.parse('$baseUrl/history'),
@@ -80,7 +80,7 @@ class ProgressService {
   Future<Map<String, dynamic>> forceSimulate() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.post(
         Uri.parse('$baseUrl/force-simulate'),
@@ -97,7 +97,7 @@ class ProgressService {
   Future<Map<String, dynamic>> completePlan() async {
     try {
       final token = await storage.read(key: tokenKey);
-      if (token == null) return {'success': false, 'message': 'No token found'};
+      if (token == null) return {'success': false, 'message': 'Phiên đăng nhập đã hết hạn'};
 
       final response = await http.post(
         Uri.parse('$baseUrl/complete-plan'),
