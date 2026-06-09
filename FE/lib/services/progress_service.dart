@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
@@ -6,8 +7,12 @@ import '../config/app_config.dart';
 class ProgressService {
   static String get baseUrl => '${AppConfig.apiBase}/progress';
   static const String tokenKey = 'auth_token';
-  
-  final storage = const FlutterSecureStorage();
+
+  final storage = FlutterSecureStorage(
+    webOptions: kIsWeb
+        ? const WebOptions(dbName: 'quitcare_storage', publicKey: 'quitcare')
+        : const WebOptions(),
+  );
 
   Future<Map<String, dynamic>> checkIn({
     required int cigarettesSmoked,

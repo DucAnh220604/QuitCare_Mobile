@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/colors.dart';
+import '../services/auth_provider.dart';
 import '../services/plan_service.dart';
 import '../routes/app_routes.dart';
 
@@ -49,6 +51,10 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
     setState(() => _isConfirming = false);
 
     if (result['success'] == true) {
+      if (mounted) {
+        await Provider.of<AuthProvider>(context, listen: false).fetchProfile();
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Kế hoạch đã được xác nhận! Bắt đầu hành trình cai thuốc.'),
@@ -57,7 +63,7 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
         ),
       );
       await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.home);
+      if (mounted) Navigator.pushNamedAndRemoveUntil(context, AppRoutes.tienTrinh, (route) => route.settings.name == AppRoutes.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
