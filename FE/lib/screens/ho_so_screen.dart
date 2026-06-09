@@ -138,14 +138,24 @@ class HoSoScreen extends StatelessWidget {
                     BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
                   ],
                 ),
-                alignment: Alignment.center,
-                child: Text(
-                  _getInitials(user?['fullname']),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF6B4EFF),
-                  ),
+                child: ClipOval(
+                  child: user?['avatar'] != null
+                      ? Image.network(
+                          user!['avatar'] as String,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, st) => Center(
+                            child: Text(
+                              _getInitials(user['fullname']),
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF6B4EFF)),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            _getInitials(user?['fullname']),
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF6B4EFF)),
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 20),

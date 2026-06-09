@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_provider.dart';
 
@@ -16,6 +17,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
   bool _isLoading = false;
+  bool _isUploadingAvatar = false;
+  XFile? _localAvatarXFile;
 
   @override
   void initState() {
@@ -32,6 +35,61 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     _phoneController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handlePickAvatar() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final picked = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(CupertinoIcons.camera, color: Color(0xFF6B4EFF)),
+              title: const Text('Chụp ảnh', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(CupertinoIcons.photo, color: Color(0xFF6B4EFF)),
+              title: const Text('Chọn từ thư viện', style: TextStyle(fontWeight: FontWeight.w600)),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (picked == null || !mounted) return;
+
+    final image = await ImagePicker().pickImage(source: picked, imageQuality: 85, maxWidth: 800, maxHeight: 800);
+    if (image == null || !mounted) return;
+
+    setState(() {
+      _localAvatarXFile = image;
+      _isUploadingAvatar = true;
+    });
+
+    final success = await authProvider.uploadAvatar(_localAvatarXFile!);
+
+    if (!mounted) return;
+    setState(() => _isUploadingAvatar = false);
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Upload ảnh thất bại'),
+          backgroundColor: const Color(0xFFF43F5E),
+        ),
+      );
+      setState(() => _localAvatarXFile = null);
+    }
   }
 
   Future<void> _handleUpdate() async {
@@ -154,40 +212,59 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   }
 
   Widget _buildAvatarSection() {
+    final avatarUrl = Provider.of<AuthProvider>(context).user?['avatar'] as String?;
+
     return Center(
-      child: Stack(
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFF3F0FF),
-              border: Border.all(color: Colors.white, width: 4),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6B4EFF).withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                )
-              ],
-            ),
-            child: const Icon(CupertinoIcons.person_fill, size: 50, color: Color(0xFF6B4EFF)),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(8),
+      child: GestureDetector(
+        onTap: _isUploadingAvatar ? null : _handlePickAvatar,
+        child: Stack(
+          children: [
+            Container(
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
-                color: const Color(0xFF6B4EFF),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
+                color: const Color(0xFFF3F0FF),
+                border: Border.all(color: Colors.white, width: 4),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6B4EFF).withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  )
+                ],
               ),
-              child: const Icon(CupertinoIcons.camera_fill, size: 14, color: Colors.white),
+              child: ClipOval(
+                child: _isUploadingAvatar
+                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF6B4EFF), strokeWidth: 2))
+                    : _localAvatarXFile != null
+                        ? FutureBuilder(
+                            future: _localAvatarXFile!.readAsBytes(),
+                            builder: (ctx, snap) => snap.hasData
+                                ? Image.memory(snap.data!, fit: BoxFit.cover)
+                                : const Center(child: CircularProgressIndicator(color: Color(0xFF6B4EFF), strokeWidth: 2)),
+                          )
+                        : avatarUrl != null
+                            ? Image.network(avatarUrl, fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, st) => const Icon(CupertinoIcons.person_fill, size: 50, color: Color(0xFF6B4EFF)))
+                            : const Icon(CupertinoIcons.person_fill, size: 50, color: Color(0xFF6B4EFF)),
+              ),
             ),
-          ),
-        ],
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6B4EFF),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: const Icon(CupertinoIcons.camera_fill, size: 14, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

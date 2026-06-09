@@ -55,6 +55,10 @@ const userSchema = new mongoose.Schema(
         expireAt: { type: Date, default: null },
       },
     },
+    avatar: {
+      type: String,
+      default: null,
+    },
     createdAt: {
       type: Date,
       default: Date.now,

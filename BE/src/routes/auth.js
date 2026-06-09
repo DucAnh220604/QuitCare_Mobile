@@ -4,6 +4,7 @@ import {
   login,
   getProfile,
   updateProfile,
+  uploadAvatar,
 } from "../controllers/authController.js";
 import {
   validateRegister,
@@ -11,6 +12,7 @@ import {
   handleValidationErrors,
 } from "../middleware/validation.js";
 import auth from "../middleware/auth.js";
+import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -20,5 +22,6 @@ router.post("/login", validateLogin, handleValidationErrors, login);
 
 router.get("/profile", auth, getProfile);
 router.put("/profile", auth, updateProfile);
+router.post("/avatar", auth, upload.single("avatar"), uploadAvatar);
 
 export default router;

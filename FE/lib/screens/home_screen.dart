@@ -1,12 +1,9 @@
-import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart' show CupertinoIcons;
 import 'package:provider/provider.dart';
-import '../constants/colors.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_provider.dart';
-import '../services/plan_service.dart';
 import '../services/progress_service.dart';
 import '../screens/booking_doctor_screen.dart';
 
@@ -18,10 +15,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PlanService _planService = PlanService();
   final ProgressService _progressService = ProgressService();
 
-  Map<String, dynamic>? _recommendedPlan;
   int _streak = 0;
   int _moneySaved = 0;
   int _totalAvoided = 0;
@@ -35,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchData() async {
     await Future.wait([
-      _fetchRecommendedPlan(),
       _fetchProgressStats(),
       _fetchWeeklyHistory(),
     ]);
@@ -62,16 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _fetchRecommendedPlan() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final profile = authProvider.user?['smokingProfile'];
-    if (profile != null && (profile['cigarettesPerDay'] ?? 0) > 0) {
-      final result = await _planService.getRecommendedPlan();
-      if (result['success'] && mounted) {
-        setState(() => _recommendedPlan = result['recommendedPlan']);
-      }
-    }
-  }
 
   bool _hasDeclaredProfile(Map<String, dynamic>? user) {
     final profile = user?['smokingProfile'] as Map<String, dynamic>?;
@@ -82,6 +66,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final profile = user?['smokingProfile'] as Map<String, dynamic>?;
     if (profile == null) return false;
     return profile['currentPlan'] != null || profile['activeQuitPlanId'] != null;
+  }
+
+  bool _isFreeMember(Map<String, dynamic>? user) {
+    final membership = user?['membership'];
+    if (membership == null) return true;
+    final type = (membership as Map)['type'] as String?;
+    return type == null || type == 'free';
   }
 
   String _formatMoney(int amount) {
@@ -105,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final user = auth.user;
         final hasDeclared = _hasDeclaredProfile(user);
         final hasSelectedPlan = _hasSelectedPlan(user);
+        final isFreeMember = _isFreeMember(user);
 
         return Scaffold(
           backgroundColor: const Color(0xFFFDFDFD), // Very light clean background
@@ -154,6 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: () => Navigator.pushNamed(context, AppRoutes.dailyCheckin).then((_) => _fetchData()),
                           ),
 
+                        if (isFreeMember) ...[
+                          const SizedBox(height: 16),
+                          _buildMembershipBanner(),
+                        ],
+
                         const SizedBox(height: 32),
                         const Text(
                           'Tiến độ Tuần này',
@@ -184,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildTopSection(Map<String, dynamic>? user) {
     final fullname = ((user?['fullname'] as String?) ?? '').trim();
     final initials = _getUserInitials(user);
+    final avatarUrl = user?['avatar'] as String?;
 
     return SizedBox(
       height: 380, // Total height to accommodate header + overlapping card
@@ -217,14 +215,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.white,
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      color: Color(0xFF6B4EFF),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                  child: avatarUrl == null
+                      ? Text(
+                          initials,
+                          style: const TextStyle(
+                            color: Color(0xFF6B4EFF),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -375,58 +376,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ─────────────────────────────────────────
-  //  PILL ACTION BUTTONS
+  //  PILL ACTION BUTTONS  (3 × 2 grid)
   // ─────────────────────────────────────────
   Widget _buildActionPills() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    const bg = Colors.white;
+    const txt = Color(0xFF1E293B);
+    final pills = [
+      _PillData(icon: CupertinoIcons.calendar,           label: 'Đặt lịch',   bgColor: bg, textColor: txt, iconColor: const Color(0xFF6B4EFF), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookingDoctorScreen()))),
+      _PillData(icon: CupertinoIcons.chart_bar_alt_fill, label: 'Tiến trình', bgColor: bg, textColor: txt, iconColor: const Color(0xFF6B4EFF), onTap: () => Navigator.pushNamed(context, AppRoutes.tienTrinh)),
+      _PillData(icon: CupertinoIcons.person_2_fill,      label: 'Cộng đồng',  bgColor: bg, textColor: txt, iconColor: const Color(0xFFF59E0B), onTap: () => Navigator.pushNamed(context, AppRoutes.congDong)),
+      _PillData(icon: CupertinoIcons.rosette,            label: 'Xếp hạng',   bgColor: bg, textColor: txt, iconColor: const Color(0xFFF43F5E), onTap: () => Navigator.pushNamed(context, AppRoutes.bangXepHang)),
+      _PillData(icon: CupertinoIcons.doc_text_fill,      label: 'Kế hoạch',   bgColor: bg, textColor: txt, iconColor: const Color(0xFF0EA5E9), onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi)),
+      _PillData(icon: CupertinoIcons.star_fill,          label: 'Gói VIP',    bgColor: bg, textColor: txt, iconColor: const Color(0xFFD97706), onTap: () => Navigator.pushNamed(context, AppRoutes.goiThanhVien)),
+    ];
+
+    Widget buildRow(List<_PillData> items) {
+      final children = <Widget>[];
+      for (int i = 0; i < items.length; i++) {
+        final p = items[i];
+        children.add(Expanded(child: _buildPillBtn(icon: p.icon, label: p.label, bgColor: p.bgColor, textColor: p.textColor, iconColor: p.iconColor, onTap: p.onTap)));
+        if (i < items.length - 1) children.add(const SizedBox(width: 10));
+      }
+      return Row(children: children);
+    }
+
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
+      child: Column(
         children: [
-          _buildPillBtn(
-            icon: CupertinoIcons.calendar,
-            label: 'Đặt lịch',
-            bgColor: const Color(0xFF1E293B), // Dark pill
-            textColor: Colors.white,
-            iconColor: Colors.white,
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BookingDoctorScreen())),
-          ),
-          const SizedBox(width: 12),
-          _buildPillBtn(
-            icon: CupertinoIcons.chart_bar_alt_fill,
-            label: 'Tiến trình',
-            bgColor: Colors.white,
-            textColor: const Color(0xFF1E293B),
-            iconColor: const Color(0xFF6B4EFF),
-            onTap: () => Navigator.pushNamed(context, AppRoutes.tienTrinh),
-          ),
-          const SizedBox(width: 12),
-          _buildPillBtn(
-            icon: CupertinoIcons.person_2_fill,
-            label: 'Cộng đồng',
-            bgColor: Colors.white,
-            textColor: const Color(0xFF1E293B),
-            iconColor: const Color(0xFFF59E0B),
-            onTap: () => Navigator.pushNamed(context, AppRoutes.congDong),
-          ),
-          const SizedBox(width: 12),
-          _buildPillBtn(
-            icon: CupertinoIcons.rosette,
-            label: 'Xếp hạng',
-            bgColor: Colors.white,
-            textColor: const Color(0xFF1E293B),
-            iconColor: const Color(0xFFF43F5E),
-            onTap: () => Navigator.pushNamed(context, AppRoutes.bangXepHang),
-          ),
-          const SizedBox(width: 12),
-          _buildPillBtn(
-            icon: CupertinoIcons.doc_text_fill,
-            label: 'Kế hoạch',
-            bgColor: Colors.white,
-            textColor: const Color(0xFF1E293B),
-            iconColor: const Color(0xFF0EA5E9),
-            onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
-          ),
+          buildRow(pills.sublist(0, 3)),
+          const SizedBox(height: 10),
+          buildRow(pills.sublist(3, 6)),
         ],
       ),
     );
@@ -443,23 +423,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: bgColor == Colors.white
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))]
-              : [],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: iconColor, size: 18),
-            const SizedBox(width: 8),
+            Icon(icon, color: iconColor, size: 16),
+            const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 color: textColor,
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -535,6 +514,86 @@ class _HomeScreenState extends State<HomeScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(CupertinoIcons.arrow_right, color: Color(0xFF475569), size: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────
+  //  MEMBERSHIP UPGRADE BANNER
+  // ─────────────────────────────────────────
+  Widget _buildMembershipBanner() {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.goiThanhVien),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6B4EFF), Color(0xFF9B7DFF)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF6B4EFF).withValues(alpha: 0.35),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(CupertinoIcons.rosette, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Nâng cấp gói VIP',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Tư vấn bác sĩ 1-1 và nhiều tính năng cao cấp',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Xem ngay',
+                style: TextStyle(
+                  color: Color(0xFF6B4EFF),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ],
         ),
@@ -644,4 +703,21 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _PillData {
+  const _PillData({
+    required this.icon,
+    required this.label,
+    required this.bgColor,
+    required this.textColor,
+    required this.iconColor,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final Color bgColor;
+  final Color textColor;
+  final Color iconColor;
+  final VoidCallback onTap;
 }

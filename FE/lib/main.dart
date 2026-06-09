@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'routes/app_routes.dart';
 import 'screens/main_app.dart';
@@ -37,6 +38,13 @@ class _MyAppState extends State<MyApp> {
       ],
       child: MaterialApp(
         title: 'QuitCare Mobile',
+        locale: const Locale('vi', 'VN'),
+        supportedLocales: const [Locale('vi', 'VN'), Locale('en')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryBlue),
           useMaterial3: true,

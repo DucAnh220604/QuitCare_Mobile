@@ -7,7 +7,15 @@
       "Bash(where flutter *)",
       "Bash(grep -l \"flame\\\\|nosign\" \"D:/src/flutter/packages/flutter/lib/src/cupertino/icons.dart\" 2>&1 | head -3)",
       "Read(//d/src/flutter/packages/flutter/lib/src/cupertino/**)",
-      "Bash(xargs grep -l \"community\\\\|cong.dong\\\\|post\\\\|comment\\\\|like\")"
+      "Bash(xargs grep -l \"community\\\\|cong.dong\\\\|post\\\\|comment\\\\|like\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\quitcare_mobile\" -Directory)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\quitcare_mobile\\\\BE\" -Depth 2 -Directory | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object FullName)",
+      "Bash(xargs grep -l \"image\\\\|Image\\\\|picker\\\\|file\")",
+      "PowerShell(cd d:\\\\quitcare_mobile\\\\FE; flutter analyze lib/screens/profile_detail_screen.dart lib/screens/ho_so_screen.dart lib/services/auth_service.dart lib/services/auth_provider.dart; Write-Host \"Exit: $LASTEXITCODE\")",
+      "PowerShell(Set-Location d:\\\\quitcare_mobile\\\\FE; $out = flutter analyze 2>&1; $out | Select-Object -First 40; Write-Host \"Exit: $LASTEXITCODE\")",
+      "PowerShell(Set-Location d:\\\\quitcare_mobile\\\\FE; \\(flutter analyze lib/screens/home_screen.dart 2>&1\\); Write-Host \"Done: $LastExitCode\")",
+      "PowerShell(Set-Location d:\\\\quitcare_mobile\\\\FE; flutter analyze lib/screens/home_screen.dart 2>&1 | ForEach-Object { $_ }; Write-Host \"Exit: $LastExitCode\")",
+      "PowerShell(Set-Location d:\\\\quitcare_mobile\\\\FE; flutter pub get 2>&1 | Select-String -Pattern \"error|Error|failed|Failed|dependency\" | ForEach-Object { $_.Line })"
     ]
   }
 }

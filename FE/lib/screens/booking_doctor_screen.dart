@@ -206,6 +206,7 @@ class _BookingDoctorScreenState extends State<BookingDoctorScreen> {
       onTap: () async {
         final date = await showDatePicker(
           context: context,
+          locale: const Locale('vi', 'VN'),
           initialDate: DateTime.now().add(const Duration(days: 1)),
           firstDate: DateTime.now(),
           lastDate: DateTime.now().add(const Duration(days: 30)),

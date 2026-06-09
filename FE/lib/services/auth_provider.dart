@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -175,6 +176,34 @@ class AuthProvider extends ChangeNotifier {
 
     _isCheckingAuth = false;
     notifyListeners();
+  }
+
+  /// Upload user avatar
+  Future<bool> uploadAvatar(XFile imageFile) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await authService.uploadAvatar(imageFile);
+
+      if (result['success']) {
+        _user = {...?_user, 'avatar': result['avatar']};
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'An error occurred: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   /// Clear error message

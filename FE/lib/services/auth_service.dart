@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 
@@ -149,6 +151,47 @@ class AuthService {
           'success': false,
           'message': data['message'] ?? 'Failed to update profile',
         };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  /// Upload user avatar
+  Future<Map<String, dynamic>> uploadAvatar(XFile imageFile) async {
+    try {
+      final token = await storage.read(key: tokenKey);
+      if (token == null) {
+        return {'success': false, 'message': 'No token found'};
+      }
+
+      final bytes = await imageFile.readAsBytes();
+      final filename = imageFile.name;
+      final ext = filename.split('.').last.toLowerCase();
+      final mimeType = const {
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+        'png': 'image/png', 'gif': 'image/gif', 'webp': 'image/webp',
+      }[ext] ?? 'image/jpeg';
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/avatar'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(http.MultipartFile.fromBytes(
+        'avatar', bytes,
+        filename: filename,
+        contentType: MediaType.parse(mimeType),
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success']) {
+        return {'success': true, 'avatar': data['data']['avatar']};
+      } else {
+        return {'success': false, 'message': data['message'] ?? 'Upload failed'};
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error: ${e.toString()}'};

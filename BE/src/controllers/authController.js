@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { generateToken } from "../config/jwt.js";
+import cloudinary from "../config/cloudinary.js";
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -41,6 +42,7 @@ const register = async (req, res) => {
           fullname: user.fullname,
           email: user.email,
           phone: user.phone,
+          avatar: user.avatar,
           membership: user.membership,
           smokingProfile: user.smokingProfile,
         },
@@ -105,6 +107,7 @@ const login = async (req, res) => {
           fullname: user.fullname,
           email: user.email,
           phone: user.phone,
+          avatar: user.avatar,
           membership: user.membership,
           smokingProfile: user.smokingProfile,
         },
@@ -132,6 +135,7 @@ const getProfile = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         phone: user.phone,
+        avatar: user.avatar,
         membership: user.membership,
         smokingProfile: user.smokingProfile,
         createdAt: user.createdAt,
@@ -175,6 +179,7 @@ const updateProfile = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         phone: user.phone,
+        avatar: user.avatar,
         smokingProfile: user.smokingProfile,
         createdAt: user.createdAt,
       },
@@ -187,4 +192,45 @@ const updateProfile = async (req, res) => {
   }
 };
 
-export { register, login, getProfile, updateProfile };
+// @desc    Upload user avatar
+// @route   POST /api/auth/avatar
+// @access  Private
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image file provided" });
+    }
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "quitcare/avatars",
+          public_id: `user_${req.user.id}`,
+          overwrite: true,
+          transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatar: uploadResult.secure_url },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Avatar uploaded successfully",
+      data: { avatar: user.avatar },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export { register, login, getProfile, updateProfile, uploadAvatar };
