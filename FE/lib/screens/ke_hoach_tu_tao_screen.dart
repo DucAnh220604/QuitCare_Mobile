@@ -85,6 +85,10 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
         if (weekRange.isEmpty) {
           return 'Giai đoạn ${s + 1}, khoảng ${i + 1}: Vui lòng nhập khoảng thời gian';
         }
+        final weekNums = RegExp(r'\d+').allMatches(weekRange).toList();
+        if (weekNums.isEmpty) {
+          return 'Giai đoạn ${s + 1}, khoảng ${i + 1}: Khoảng thời gian phải chứa số tuần (vd: "Tuần 1" hoặc "Tuần 1-2")';
+        }
         if (cigsText.isEmpty) {
           return 'Giai đoạn ${s + 1}, khoảng ${i + 1}: Vui lòng nhập số điếu';
         }
@@ -97,19 +101,39 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
     return null;
   }
 
-  List<Map<String, dynamic>> _buildStages() {
+  // Mirror backend getAddictionLevel logic
+  String _computeAddictionLevel(int cigarettesPerDay) {
+    if (cigarettesPerDay <= 10) return 'Thấp';
+    if (cigarettesPerDay <= 20) return 'Trung bình';
+    return 'Cao';
+  }
+
+  // Parse "Tuần 1", "Tuần 1-2", "Tuần 1 - 3", etc. → (startWeek, endWeek)
+  (int, int) _parseWeekRange(String weekRange) {
+    final nums = RegExp(r'\d+').allMatches(weekRange).map((m) => int.parse(m.group(0)!)).toList();
+    if (nums.isEmpty) return (1, 1);
+    if (nums.length == 1) return (nums[0], nums[0]);
+    return (nums[0], nums[1]);
+  }
+
+  List<Map<String, dynamic>> _buildStages(DateTime overallStart) {
     final result = <Map<String, dynamic>>[];
+    int stageNum = 1;
     for (int s = 0; s < _stages.length; s++) {
       for (int i = 0; i < _stages[s].intervals.length; i++) {
         final weekRange = _stages[s].intervals[i].weekRangeController.text.trim();
         final cigs = int.parse(_stages[s].intervals[i].cigarettesController.text.trim());
+        final (startWeek, endWeek) = _parseWeekRange(weekRange);
+        final stageStart = overallStart.add(Duration(days: (startWeek - 1) * 7));
+        final stageEnd = overallStart.add(Duration(days: endWeek * 7 - 1));
         result.add({
-          'stageName': 'Giai đoạn ${s + 1}',
+          'stageName': 'Giai đoạn $stageNum',
           'weekRange': weekRange,
-          'startDate': DateTime.now().toIso8601String(),
-          'endDate': DateTime.now().toIso8601String(),
+          'startDate': stageStart.toIso8601String(),
+          'endDate': stageEnd.toIso8601String(),
           'cigarettesPerDay': cigs,
         });
+        stageNum++;
       }
     }
     return result;
@@ -126,15 +150,38 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
 
     setState(() => _isSaving = true);
 
-    final stages = _buildStages();
-    final now = DateTime.now();
+    // Read smoking profile to get addictionLevel and baseline cigarettes
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final smokingProfile = (authProvider.user?['smokingProfile'] as Map<String, dynamic>?) ?? {};
+    final cigarettesPerDay = (smokingProfile['cigarettesPerDay'] as num?)?.toInt() ?? 0;
+    final addictionLevel = _computeAddictionLevel(cigarettesPerDay);
+
+    // Use quitDate from profile as start, fallback to today
+    DateTime overallStart;
+    final quitDateStr = smokingProfile['quitDate']?.toString();
+    overallStart = quitDateStr != null
+        ? (DateTime.tryParse(quitDateStr) ?? DateTime.now())
+        : DateTime.now();
+    overallStart = DateTime(overallStart.year, overallStart.month, overallStart.day);
+
+    final stages = _buildStages(overallStart);
+
+    // overallEndDate = last stage's endDate, not a hardcoded offset
+    DateTime overallEnd = overallStart.add(const Duration(days: 140));
+    if (stages.isNotEmpty) {
+      final lastEndStr = stages.last['endDate'] as String?;
+      if (lastEndStr != null) {
+        overallEnd = DateTime.tryParse(lastEndStr) ?? overallEnd;
+      }
+    }
+
     final planData = {
       'type': 'custom',
       'stages': stages,
-      'overallStartDate': now.toIso8601String(),
-      'overallEndDate': now.add(const Duration(days: 140)).toIso8601String(),
-      'addictionLevel': null,
-      'baselineCigarettes': 0,
+      'overallStartDate': overallStart.toIso8601String(),
+      'overallEndDate': overallEnd.toIso8601String(),
+      'addictionLevel': addictionLevel,
+      'baselineCigarettes': cigarettesPerDay,
     };
 
     final result = await _planService.confirmPlan(planData);

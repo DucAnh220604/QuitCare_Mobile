@@ -222,6 +222,13 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         appBar: AppBar(
           elevation: 0,
           backgroundColor: AppColors.primaryBlue,
+          automaticallyImplyLeading: false,
+          leading: Navigator.canPop(context)
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                )
+              : null,
           title: const Text('Tiến trình của bạn'),
           centerTitle: true,
           actions: [
