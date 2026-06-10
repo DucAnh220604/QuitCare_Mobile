@@ -71,14 +71,14 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFFDFDFD),
       appBar: AppBar(
         title: const Text(
           'Chọn Kế Hoạch Cai Thuốc',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
         ),
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: AppColors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -97,15 +97,15 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   Text(
                     'Lựa chọn hướng đi phù hợp',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF1E293B),
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Hệ thống đã phân tích hồ sơ của bạn và tạo kế hoạch phù hợp nhất. Quyền quyết định cuối cùng là ở bạn.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: const Color(0xFF64748B),
                       height: 1.5,
                     ),
                   ),
@@ -155,14 +155,14 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       onTap: hasData ? () => Navigator.pushNamed(context, AppRoutes.keHoachDeXuat) : null,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.warning, width: 2),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF6B4EFF), width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.warning.withValues(alpha: 0.18),
-              blurRadius: 16,
-              offset: const Offset(0, 5),
+              color: const Color(0xFF6B4EFF).withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -171,22 +171,22 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
           children: [
             // Card header strip
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.warning.withValues(alpha: 0.15),
-                    AppColors.warning.withValues(alpha: 0.05),
+                    const Color(0xFF6B4EFF).withValues(alpha: 0.15),
+                    const Color(0xFF6B4EFF).withValues(alpha: 0.05),
                   ],
                 ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.warning,
+                      color: const Color(0xFF6B4EFF),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(
@@ -201,14 +201,14 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
                       'Được tạo từ hồ sơ của bạn',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w500),
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textSecondary),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF94A3B8)),
                 ],
               ),
             ),
@@ -222,21 +222,21 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0xFFF3F0FF),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.medical_services_rounded, color: AppColors.primaryBlue, size: 22),
+                        child: const Icon(Icons.medical_services_rounded, color: Color(0xFF6B4EFF), size: 24),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       const Expanded(
                         child: Text(
                           'Kế hoạch Đề xuất từ Chuyên gia',
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
-                            color: AppColors.primaryBlue,
+                            color: Color(0xFF1E293B),
                           ),
                         ),
                       ),
@@ -319,28 +319,33 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                     // Date range
                     Row(
                       children: [
-                        const Icon(Icons.date_range_rounded, size: 15, color: AppColors.textSecondary),
-                        const SizedBox(width: 6),
+                        const Icon(Icons.date_range_rounded, size: 16, color: Color(0xFF94A3B8)),
+                        const SizedBox(width: 8),
                         Text(
                           '$startDate  →  $endDate',
                           style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryBlue,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF6B4EFF), Color(0xFFA855F7)],
+                            ),
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(color: const Color(0xFF6B4EFF).withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))
+                            ],
                           ),
                           child: const Text(
                             'Xem chi tiết →',
                             style: TextStyle(
                               color: Colors.white,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                               fontSize: 12,
                             ),
                           ),
@@ -405,33 +410,33 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
                         color: isQuit
-                            ? AppColors.success.withValues(alpha: 0.15)
-                            : AppColors.primaryBlue.withValues(alpha: 0.08),
+                            ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                            : const Color(0xFFF3F0FF),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         isQuit ? '0' : '$cigs',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isQuit ? AppColors.success : AppColors.primaryBlue,
+                          color: isQuit ? const Color(0xFF10B981) : const Color(0xFF6B4EFF),
                           fontWeight: FontWeight.w800,
                           fontSize: 14,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       'GĐ ${i + 1}',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
               ),
               if (!isLast)
                 const Padding(
-                  padding: EdgeInsets.only(bottom: 16),
-                  child: Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.textSecondary),
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFFCBD5E1)),
                 ),
             ],
           ),
@@ -445,11 +450,11 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachTuTao),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.divider, width: 1.5),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
           boxShadow: [
-            BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5)),
           ],
         ),
         padding: const EdgeInsets.all(18),

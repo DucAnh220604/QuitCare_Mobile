@@ -221,28 +221,31 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         backgroundColor: AppColors.background,
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: AppColors.primaryBlue,
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF1E293B),
           automaticallyImplyLeading: false,
           leading: Navigator.canPop(context)
               ? IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E293B)),
                   onPressed: () => Navigator.pop(context),
                 )
               : null,
-          title: const Text('Tiến trình của bạn'),
+          title: const Text('Tiến trình của bạn', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
           centerTitle: true,
           actions: [
             IconButton(
-              icon: const Icon(Icons.electric_bolt, color: AppColors.warning),
+              icon: const Icon(Icons.electric_bolt, color: Color(0xFFFBBF24)),
               tooltip: 'Giả lập dữ liệu Demo',
               onPressed: _isLoading ? null : _forceSimulate,
             ),
           ],
           bottom: const TabBar(
-            indicatorColor: Colors.white,
+            indicatorColor: Color(0xFF6B4EFF),
             indicatorWeight: 3,
+            labelColor: Color(0xFF6B4EFF),
+            unselectedLabelColor: Color(0xFF94A3B8),
             labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
             tabs: [
               Tab(text: 'Tổng quan'),
               Tab(text: 'Lịch sử'),
@@ -255,7 +258,8 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
             : (_isCompleted
                 ? FloatingActionButton.extended(
                     onPressed: _isCompleting ? null : _completePlan,
-                    backgroundColor: AppColors.success,
+                    backgroundColor: const Color(0xFF10B981),
+                    elevation: 4,
                     icon: _isCompleting
                         ? const SizedBox(
                             width: 20,
@@ -271,7 +275,8 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
                     ? FloatingActionButton.extended(
                         onPressed: () => Navigator.pushNamed(context, AppRoutes.dailyCheckin)
                             .then((v) { if (v == true) _fetchAll(); }),
-                        backgroundColor: AppColors.warning,
+                        backgroundColor: const Color(0xFFFBBF24),
+                        elevation: 4,
                         icon: const Icon(Icons.assignment_turned_in, color: Colors.white),
                         label: const Text('Ghi nhận hôm nay',
                             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -280,7 +285,8 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
                         ? FloatingActionButton.extended(
                             onPressed: () => Navigator.pushNamed(context, AppRoutes.dailyCheckin)
                                 .then((v) { if (v == true) _fetchAll(); }),
-                            backgroundColor: const Color(0xFF3B82F6),
+                            backgroundColor: const Color(0xFF6B4EFF),
+                            elevation: 4,
                             icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
                             label: const Text('Sửa ghi nhận',
                                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -335,17 +341,17 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                color: const Color(0xFFF3F0FF),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.flag_outlined, size: 56, color: AppColors.primaryBlue.withValues(alpha: 0.6)),
+              child: const Icon(Icons.flag_outlined, size: 56, color: Color(0xFF6B4EFF)),
             ),
             const SizedBox(height: 24),
             Text('Chưa có kế hoạch cai thuốc',
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    ?.copyWith(fontWeight: FontWeight.w800, color: const Color(0xFF1E293B)),
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
@@ -353,7 +359,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(color: AppColors.textSecondary, height: 1.5),
+                  ?.copyWith(color: const Color(0xFF64748B), height: 1.5),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -363,7 +369,7 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
               icon: const Icon(Icons.add_rounded),
               label: const Text('Tạo kế hoạch ngay'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
+                backgroundColor: const Color(0xFF6B4EFF),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -379,11 +385,15 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
   Widget _buildMainStatCard() {
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF6B4EFF), Color(0xFFA855F7)],
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withValues(alpha: 0.3),
+            color: const Color(0xFF6B4EFF).withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -395,22 +405,22 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         children: [
           Text('Số ngày không hút thuốc',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.white.withValues(alpha: 0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w500,
               )),
           const SizedBox(height: 8),
           Text('$_streak',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: AppColors.white,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
               )),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _statCol('Tiền tiết kiệm', _fmtMoney(_moneySaved), AppColors.warning),
+              _statCol('Tiền tiết kiệm', _fmtMoney(_moneySaved), const Color(0xFFFBBF24)),
               Container(width: 1, height: 40, color: Colors.white24),
-              _statCol('Số điếu tránh được', '$_totalAvoided', AppColors.success),
+              _statCol('Số điếu tránh được', '$_totalAvoided', const Color(0xFF10B981)),
             ],
           ),
         ],
@@ -447,12 +457,18 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
       onTap: () => Navigator.pushNamed(context, AppRoutes.keHoachCuaToi),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
-          boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: const Offset(0, 3))],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            )
+          ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -485,47 +501,47 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Tiến độ tổng thể',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w600)),
                 Text('${(progress * 100).toStringAsFixed(1)}%',
-                    style: const TextStyle(color: AppColors.primaryBlue, fontSize: 13, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(color: Color(0xFF6B4EFF), fontSize: 13, fontWeight: FontWeight.bold)),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
                 value: progress,
-                minHeight: 10,
-                backgroundColor: AppColors.divider.withValues(alpha: 0.5),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                minHeight: 12,
+                backgroundColor: const Color(0xFFF1F5F9),
+                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6B4EFF)),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text('Dự kiến kết thúc: $overallEnd',
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
             if (currentStage != null) ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.divider.withValues(alpha: 0.3)),
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text('GĐ ${currentIdx + 1}/$totalStages',
                           style: const TextStyle(
-                              color: AppColors.warning, fontWeight: FontWeight.bold, fontSize: 12)),
+                              color: Color(0xFFD97706), fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -613,15 +629,16 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
     final pct = total == 0 ? 0.0 : checked / total;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primaryBlue, AppColors.primaryBlue.withValues(alpha: 0.8)],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6B4EFF), Color(0xFFA855F7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: AppColors.primaryBlue.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: const Color(0xFF6B4EFF).withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,11 +650,11 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _summaryStatItem('✅', '$checked', 'Ghi nhận'),
+              _summaryStatItem(Icons.check_circle_rounded, const Color(0xFF10B981), '$checked', 'Ghi nhận'),
               _divider(),
-              _summaryStatItem('❌', '$missed', 'Bỏ lỡ'),
+              _summaryStatItem(Icons.cancel_rounded, const Color(0xFFF43F5E), '$missed', 'Bỏ lỡ'),
               _divider(),
-              _summaryStatItem('📊', '${(pct * 100).toStringAsFixed(0)}%', 'Hoàn thành'),
+              _summaryStatItem(Icons.bar_chart_rounded, const Color(0xFF0EA5E9), '${(pct * 100).toStringAsFixed(0)}%', 'Hoàn thành'),
             ],
           ),
           if (total > 0) ...[
@@ -657,10 +674,10 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
     );
   }
 
-  Widget _summaryStatItem(String emoji, String value, String label) => Expanded(
+  Widget _summaryStatItem(IconData icon, Color iconColor, String value, String label) => Expanded(
         child: Column(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 18)),
+            Icon(icon, size: 24, color: iconColor),
             const SizedBox(height: 4),
             Text(value,
                 style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
@@ -682,12 +699,18 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
-        boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: const Offset(0, 3))],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          )
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           // navigation header
@@ -781,11 +804,11 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         child: Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: AppColors.background,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
-          child: Icon(icon, size: 18, color: AppColors.textPrimary),
+          child: Icon(icon, size: 18, color: const Color(0xFF1E293B)),
         ),
       );
 
@@ -1095,6 +1118,9 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
         return db.compareTo(da);
       });
 
+    final limitedLogs = monthLogs.length > 5 ? monthLogs.sublist(0, 5) : monthLogs;
+    final hasMore = monthLogs.length > 5;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1132,8 +1158,34 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
               ),
             ),
           )
-        else
-          ...monthLogs.map((log) => _buildLogCard(log)),
+        else ...[
+          ...limitedLogs.map((log) => _buildLogCard(log)),
+          if (hasMore)
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LichSuGhiNhanScreen(
+                        month: _calendarMonth,
+                        logs: monthLogs,
+                        buildCard: _buildLogCard,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.history, size: 18),
+                label: const Text('Xem thêm', style: TextStyle(fontWeight: FontWeight.bold)),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF6B4EFF),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  backgroundColor: const Color(0xFF6B4EFF).withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+        ]
       ],
     );
   }
@@ -1156,12 +1208,12 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
       onTap: () => _showDayDetails(context, _key(dt), log),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider.withValues(alpha: 0.4)),
-          boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 5, offset: const Offset(0, 2))],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF1F5F9)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1314,34 +1366,34 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
               Column(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: achieved ? AppColors.success.withValues(alpha: 0.15) : AppColors.divider.withValues(alpha: 0.3),
+                      color: achieved ? const Color(0xFF10B981).withValues(alpha: 0.15) : const Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
-                      border: Border.all(color: achieved ? AppColors.success : AppColors.divider, width: 2),
+                      border: Border.all(color: achieved ? const Color(0xFF10B981) : const Color(0xFFE2E8F0), width: 2),
                     ),
-                    child: Icon(m['icon'] as IconData, size: 18,
-                        color: achieved ? AppColors.success : AppColors.textSecondary),
+                    child: Icon(m['icon'] as IconData, size: 20,
+                        color: achieved ? const Color(0xFF10B981) : const Color(0xFF94A3B8)),
                   ),
                   if (!isLast)
-                    Expanded(child: Container(width: 2, color: achieved ? AppColors.success : AppColors.divider)),
+                    Expanded(child: Container(width: 2, color: achieved ? const Color(0xFF10B981) : const Color(0xFFF1F5F9))),
                 ],
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 24.0),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                           color: achieved
-                              ? AppColors.success.withValues(alpha: 0.5)
-                              : AppColors.divider.withValues(alpha: 0.5)),
-                      boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 4, offset: const Offset(0, 2))],
+                              ? const Color(0xFF10B981).withValues(alpha: 0.5)
+                              : const Color(0xFFF1F5F9)),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1433,6 +1485,51 @@ class _TienTrinhScreenState extends State<TienTrinhScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+class LichSuGhiNhanScreen extends StatelessWidget {
+  final DateTime month;
+  final List<Map<String, dynamic>> logs;
+  final Widget Function(Map<String, dynamic>) buildCard;
+
+  const LichSuGhiNhanScreen({
+    super.key,
+    required this.month,
+    required this.logs,
+    required this.buildCard,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final viMonths = [
+      '', 'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
+    return Scaffold(
+      backgroundColor: const Color(0xFFFDFDFD),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
+        title: Text(
+          'Lịch sử ${viMonths[month.month]} ${month.year}',
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: logs.length,
+        itemBuilder: (context, index) {
+          return buildCard(logs[index]);
+        },
+      ),
     );
   }
 }

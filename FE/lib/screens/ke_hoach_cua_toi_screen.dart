@@ -82,14 +82,14 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFFDFDFD),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: AppColors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
         title: const Text(
           'Kế hoạch của tôi',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         centerTitle: true,
         leading: Navigator.canPop(context)
@@ -159,14 +159,21 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           // Type badge
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: type == 'suggested'
-                    ? [AppColors.primaryBlue, AppColors.primaryBlue.withValues(alpha: 0.75)]
-                    : [AppColors.brandPurple, AppColors.brandPurple.withValues(alpha: 0.75)],
+                    ? [const Color(0xFF6B4EFF), const Color(0xFFA855F7)]
+                    : [const Color(0xFF10B981), const Color(0xFF34D399)],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: (type == 'suggested' ? const Color(0xFF6B4EFF) : const Color(0xFF10B981)).withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
             ),
             child: Row(
               children: [
@@ -180,7 +187,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                   type == 'suggested' ? 'Kế hoạch được đề xuất' : 'Kế hoạch tự lập',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
                 ),
@@ -192,11 +199,12 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           // Summary card
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,11 +258,12 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           // Overall progress bar
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,9 +281,9 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                     ),
                     Text(
                       '${(overallProgress * 100).toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        color: AppColors.primaryBlue,
-                        fontWeight: FontWeight.w700,
+                      style: const TextStyle(
+                        color: Color(0xFF6B4EFF),
+                        fontWeight: FontWeight.w800,
                         fontSize: 14,
                       ),
                     ),
@@ -285,15 +294,15 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: overallProgress,
-                    minHeight: 10,
-                    backgroundColor: AppColors.divider,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+                    minHeight: 12,
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6B4EFF)),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Ngày $elapsedDays / $overallDays',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -312,18 +321,19 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               children: [
                 // Table header
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.07),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Row(
                     children: [
@@ -362,19 +372,19 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
     final isQuit = cigs == 0;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isQuit
-              ? [AppColors.success, AppColors.success.withValues(alpha: 0.8)]
-              : [AppColors.primaryBlue, AppColors.primaryBlue.withValues(alpha: 0.8)],
+              ? [const Color(0xFF10B981), const Color(0xFF34D399)]
+              : [const Color(0xFF6B4EFF), const Color(0xFFA855F7)],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: (isQuit ? AppColors.success : AppColors.primaryBlue).withValues(alpha: 0.3),
+            color: (isQuit ? const Color(0xFF10B981) : const Color(0xFF6B4EFF)).withValues(alpha: 0.3),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -425,10 +435,15 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           // Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6B4EFF), Color(0xFFA855F7)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: const Color(0xFF6B4EFF).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
+              ],
             ),
             child: Row(
               children: [
@@ -436,7 +451,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                 const SizedBox(width: 8),
                 const Text(
                   'Kế hoạch đã chọn',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
                 ),
               ],
             ),
@@ -446,11 +461,12 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
           // Plan card
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -458,7 +474,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                 Text(
                   plan['name'] ?? '',
                   style: const TextStyle(
-                    color: AppColors.primaryBlue,
+                    color: Color(0xFF1E293B),
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
                   ),
@@ -498,9 +514,10 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
               ),
               child: Column(
                 children: tasks.asMap().entries.map((entry) {
@@ -521,16 +538,16 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                            color: const Color(0xFFF3F0FF),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: Text(
                               '${i + 1}',
                               style: const TextStyle(
-                                color: AppColors.primaryBlue,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
+                                color: Color(0xFF6B4EFF),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -582,13 +599,13 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
         Text(emoji, style: const TextStyle(fontSize: 18)),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          child: Text(label, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
         ),
         const SizedBox(width: 8),
         valueWidget ??
             Text(
               value ?? '--',
-              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
+              style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w700, fontSize: 14),
             ),
       ],
     );
@@ -600,7 +617,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
       child: Text(
         text,
         textAlign: isLast ? TextAlign.right : TextAlign.center,
-        style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w700, fontSize: 12),
+        style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w700, fontSize: 12),
       ),
     );
   }
@@ -614,15 +631,15 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
     final cigs = stage['cigarettesPerDay'] as int? ?? 0;
     final isQuit = cigs == 0;
     Color bgColor = isCurrent
-        ? AppColors.primaryBlue.withValues(alpha: 0.08)
-        : (isEven ? AppColors.background : AppColors.white);
+        ? const Color(0xFFF3F0FF)
+        : (isEven ? const Color(0xFFFDFDFD) : Colors.white);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(16)) : null,
-        border: isLast ? null : const Border(bottom: BorderSide(color: AppColors.divider, width: 0.5)),
+        borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(24)) : null,
+        border: isLast ? null : const Border(bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
       ),
       child: Row(
         children: [
@@ -641,8 +658,8 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
                     stage['stageName'] ?? '',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: isCurrent ? AppColors.primaryBlue : AppColors.textPrimary,
-                      fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
+                      color: isCurrent ? const Color(0xFF6B4EFF) : const Color(0xFF1E293B),
+                      fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
                       fontSize: 12,
                     ),
                   ),
@@ -655,7 +672,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
             child: Text(
               stage['weekRange'] ?? '',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
             ),
           ),
           Expanded(
@@ -663,7 +680,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
             child: Text(
               _formatDate(stage['startDate']),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
             ),
           ),
           Expanded(
@@ -671,7 +688,7 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
             child: Text(
               _formatDate(stage['endDate']),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
             ),
           ),
           Expanded(
@@ -680,8 +697,8 @@ class _KeHoachCuaToiScreenState extends State<KeHoachCuaToiScreen> {
               isQuit ? 'Cai hoàn toàn' : '$cigs điếu',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isQuit ? AppColors.success : AppColors.primaryBlue,
-                fontWeight: FontWeight.w700,
+                color: isQuit ? const Color(0xFF10B981) : const Color(0xFF6B4EFF),
+                fontWeight: FontWeight.w800,
                 fontSize: isQuit ? 10 : 13,
               ),
             ),

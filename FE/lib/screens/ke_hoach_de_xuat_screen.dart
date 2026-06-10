@@ -95,14 +95,14 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFFDFDFD),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: AppColors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
         title: const Text(
           'Kế hoạch được đề xuất',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -164,12 +164,15 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
           // Header badge
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primaryBlue, AppColors.primaryBlue.withValues(alpha: 0.75)],
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6B4EFF), Color(0xFFA855F7)],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: const Color(0xFF6B4EFF).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
+              ],
             ),
             child: Row(
               children: [
@@ -178,7 +181,7 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
                 const Expanded(
                   child: Text(
                     'Kế hoạch cai thuốc được đề xuất',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                 ),
               ],
@@ -189,11 +192,12 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
           // Summary card
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,18 +248,19 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               children: [
                 // Table header
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.07),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Row(
                     children: [
@@ -283,12 +288,12 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
           // Confirmation section
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.25), width: 1.5),
-              boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
             ),
             child: Column(
               children: [
@@ -327,16 +332,17 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF28A745),
+                      backgroundColor: const Color(0xFF10B981),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
+                  height: 52,
                   child: OutlinedButton.icon(
                     onPressed: _isConfirming
                         ? null
@@ -344,12 +350,12 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
                     icon: const Icon(Icons.edit_note_rounded, size: 20),
                     label: const Text(
                       'Tự lập kế hoạch khác',
-                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryBlue,
-                      side: BorderSide(color: AppColors.primaryBlue, width: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      foregroundColor: const Color(0xFF6B4EFF),
+                      side: const BorderSide(color: Color(0xFF6B4EFF), width: 2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
                 ),
@@ -400,7 +406,7 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
         text,
         textAlign: isLast ? TextAlign.right : TextAlign.center,
         style: TextStyle(
-          color: AppColors.primaryBlue,
+          color: const Color(0xFF64748B),
           fontWeight: FontWeight.w700,
           fontSize: 12,
         ),
@@ -413,11 +419,11 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
     final isQuit = cigs == 0;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
-        color: isEven ? AppColors.background : AppColors.white,
-        borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(16)) : null,
-        border: isLast ? null : Border(bottom: BorderSide(color: AppColors.divider, width: 0.5)),
+        color: isEven ? const Color(0xFFFDFDFD) : Colors.white,
+        borderRadius: isLast ? const BorderRadius.vertical(bottom: Radius.circular(24)) : null,
+        border: isLast ? null : Border(bottom: BorderSide(color: const Color(0xFFF1F5F9), width: 1)),
       ),
       child: Row(
         children: [
@@ -438,7 +444,7 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
             child: Text(
               stage['weekRange'] ?? '',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(
@@ -446,7 +452,7 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
             child: Text(
               _formatDate(stage['startDate']),
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
             ),
           ),
           Expanded(
@@ -454,7 +460,7 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
             child: Text(
               _formatDate(stage['endDate']),
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
             ),
           ),
           Expanded(
@@ -463,8 +469,8 @@ class _KeHoachDeXuatScreenState extends State<KeHoachDeXuatScreen> {
               isQuit ? 'Hoàn toàn cai' : '$cigs điếu',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isQuit ? AppColors.success : AppColors.primaryBlue,
-                fontWeight: FontWeight.w700,
+                color: isQuit ? const Color(0xFF10B981) : const Color(0xFF6B4EFF),
+                fontWeight: FontWeight.w800,
                 fontSize: isQuit ? 11 : 13,
               ),
             ),

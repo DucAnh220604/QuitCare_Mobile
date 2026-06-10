@@ -215,14 +215,14 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFFDFDFD),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: AppColors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
         title: const Text(
           'Bảng Tự Lập Kế Hoạch',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -247,10 +247,10 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
                     icon: const Icon(Icons.add_circle_outline, size: 18),
                     label: const Text('Thêm giai đoạn', style: TextStyle(fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.success,
-                      side: const BorderSide(color: AppColors.success, width: 1.5),
+                      foregroundColor: const Color(0xFF10B981),
+                      side: const BorderSide(color: Color(0xFF10B981), width: 1.5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
                 ),
@@ -270,10 +270,11 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBlue,
+                      backgroundColor: const Color(0xFF6B4EFF),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
                     ),
                   ),
                 ),
@@ -289,11 +290,11 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
   Widget _buildInstructionCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F4FD),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFBBDEFB), width: 1),
+        color: const Color(0xFFF3F0FF),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,7 +306,7 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
               Text(
                 'Hướng dẫn tạo kế hoạch linh hoạt:',
                 style: TextStyle(
-                  color: Color(0xFF1565C0),
+                  color: Color(0xFF6B4EFF),
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
@@ -350,9 +351,9 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.bold)),
+          const Text('• ', style: TextStyle(color: Color(0xFF6B4EFF), fontWeight: FontWeight.bold)),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Color(0xFF1E3A5F), fontSize: 13)),
+            child: Text(text, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
           ),
         ],
       ),
@@ -367,7 +368,7 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
         children: [
           const Text('✅ ', style: TextStyle(fontSize: 13)),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Color(0xFF1E3A5F), fontSize: 13)),
+            child: Text(text, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
           ),
         ],
       ),
@@ -384,44 +385,45 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
   Widget _buildStageCard(int stageIdx) {
     final stage = _stages[stageIdx];
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: AppColors.shadow, blurRadius: 10, offset: const Offset(0, 3))],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(
         children: [
           // Stage header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withValues(alpha: 0.06),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              color: const Color(0xFFF8FAFC),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFF6B4EFF),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
                     child: Text(
                       '${stageIdx + 1}',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Giai đoạn ${stageIdx + 1}',
-                    style: TextStyle(
-                      color: AppColors.primaryBlue,
-                      fontWeight: FontWeight.w700,
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
+                      fontWeight: FontWeight.w800,
                       fontSize: 15,
                     ),
                   ),
@@ -429,7 +431,7 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
                 if (_stages.length > 1)
                   IconButton(
                     onPressed: () => _removeStage(stageIdx),
-                    icon: const Icon(Icons.delete_outline_rounded, color: AppColors.danger, size: 20),
+                    icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444), size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     tooltip: 'Xóa giai đoạn',
@@ -440,10 +442,10 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
                   icon: const Icon(Icons.add, size: 16),
                   label: const Text('Thêm khoảng', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.success,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    backgroundColor: AppColors.success.withValues(alpha: 0.1),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    foregroundColor: const Color(0xFF10B981),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    backgroundColor: const Color(0xFF10B981).withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ],
@@ -463,8 +465,8 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
                   child: Text(
                     'Khoảng thời gian',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
                   ),
@@ -475,8 +477,8 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
                     'Số điếu mỗi ngày trong khoảng này',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
                   ),
@@ -511,18 +513,22 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
               controller: interval.weekRangeController,
               decoration: InputDecoration(
                 hintText: 'Ví dụ: Tuần 1 - 2, Tuần 1',
-                hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 12),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.divider),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF6B4EFF), width: 1.5),
                 ),
                 filled: true,
-                fillColor: AppColors.background,
+                fillColor: Colors.white,
               ),
               style: const TextStyle(fontSize: 13),
             ),
@@ -537,18 +543,22 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: '0-50 điếu/ngày',
-                hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 11),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.divider),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 1.5),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF6B4EFF), width: 1.5),
                 ),
                 filled: true,
-                fillColor: AppColors.background,
+                fillColor: Colors.white,
               ),
               style: const TextStyle(fontSize: 13),
             ),
@@ -559,7 +569,7 @@ class _KeHoachTuTaoScreenState extends State<KeHoachTuTaoScreen> {
             child: canRemove
                 ? IconButton(
                     onPressed: () => _removeInterval(stageIdx, intervalIdx),
-                    icon: const Icon(Icons.remove_circle_outline, color: AppColors.danger, size: 20),
+                    icon: const Icon(Icons.remove_circle_outline, color: Color(0xFFEF4444), size: 20),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   )
